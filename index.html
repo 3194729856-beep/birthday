@@ -1,0 +1,1601 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>致慧娴 · 生日快乐</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    background: linear-gradient(180deg, #ffe4f1 0%, #ffc1dd 45%, #ffd6ec 100%);
+    font-family: "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+  #snowCanvas {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+  }
+  #fireCanvas {
+    position: fixed;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+  }
+  .bunny {
+    position: absolute;
+    z-index: 2;
+    width: 90px;
+    height: 90px;
+    pointer-events: none;
+    animation: float 7s ease-in-out infinite;
+  }
+  .bunny svg { width: 100%; height: 100%; overflow: visible; }
+  .bunny .ear-l { transform-origin: 50% 100%; animation: wiggle 2.4s ease-in-out infinite; }
+  .bunny .ear-r { transform-origin: 50% 100%; animation: wiggle 2.4s ease-in-out infinite 0.18s; }
+  .bunny .tail { transform-origin: 50% 50%; animation: tail 3s ease-in-out infinite; }
+  .bunny.b1 { top: 10%; left: 8%; animation-delay: 0s; }
+  .bunny.b2 { top: 18%; right: 10%; animation-delay: 1.2s; }
+  .bunny.b3 { bottom: 14%; left: 14%; animation-delay: 2.4s; }
+  .bunny.b4 { bottom: 10%; right: 8%; animation-delay: 3s; }
+  @keyframes float {
+    0%, 100% { transform: translateY(0) rotate(-2deg); }
+    50% { transform: translateY(-18px) rotate(3deg); }
+  }
+  @keyframes wiggle {
+    0%, 100% { transform: rotate(-8deg); }
+    50% { transform: rotate(10deg); }
+  }
+  @keyframes tail {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.15); }
+  }
+  .stage {
+    position: relative;
+    z-index: 3;
+    width: min(420px, 86vw);
+    height: 290px;
+    perspective: 1600px;
+    cursor: pointer;
+  }
+  .envelope {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, #ff7eb3 0%, #ff5596 100%);
+    border-radius: 18px;
+    box-shadow: 0 25px 55px rgba(255, 105, 180, 0.35);
+    overflow: hidden;
+  }
+  .envelope::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+      radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.25), transparent 25%),
+      radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.18), transparent 28%);
+  }
+  .envelope-line {
+    position: absolute;
+    left: 0; right: 0;
+    height: 2px;
+    background: rgba(255, 255, 255, 0.35);
+    top: 50%;
+  }
+  .envelope-line.l2 { top: 42%; opacity: 0.5; }
+  .envelope-line.l3 { top: 58%; opacity: 0.5; }
+  .seal {
+    position: absolute;
+    top: 22%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 72px;
+    height: 72px;
+    background: radial-gradient(circle at 35% 30%, #ffd1e8, #ff2d7a);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 10px 24px rgba(255, 45, 122, 0.45);
+    z-index: 6;
+    transition: top 0.6s ease 0.25s;
+  }
+  .seal::before, .seal::after {
+    content: "";
+    position: absolute;
+    width: 22px; height: 34px;
+    background: #ff2d7a;
+    border-radius: 12px 12px 0 0;
+    top: 14px;
+  }
+  .seal::before { left: 16px; transform: rotate(-45deg); transform-origin: 0 100%; }
+  .seal::after { right: 16px; transform: rotate(45deg); transform-origin: 100% 100%; }
+  .flap {
+    position: absolute;
+    left: 0; top: 0;
+    width: 100%;
+    height: 55%;
+    background: linear-gradient(180deg, #ff60a6 0%, #ff3d8f 100%);
+    clip-path: polygon(0 0, 100% 0, 50% 100%);
+    transform-origin: top;
+    transition: transform 0.7s cubic-bezier(0.4, 0.2, 0.2, 1);
+    z-index: 5;
+  }
+  .card {
+    position: absolute;
+    left: 8%;
+    top: 18%;
+    width: 84%;
+    height: 72%;
+    background: #fff7fb;
+    border-radius: 14px;
+    padding: 22px 20px;
+    box-shadow: 0 12px 30px rgba(255, 105, 180, 0.25);
+    overflow-y: auto;
+    opacity: 0;
+    transform: translateY(20px) scale(0.92);
+    transition: opacity 0.5s ease 0.15s, transform 0.5s ease 0.15s;
+    cursor: pointer;
+  }
+  .card h2 {
+    color: #ff3d8f;
+    font-size: 20px;
+    margin-bottom: 10px;
+    text-align: center;
+  }
+  .card p {
+    color: #5a3d4f;
+    font-size: 14px;
+    line-height: 1.85;
+    margin-bottom: 10px;
+  }
+  .card-img {
+    width:100%;
+    height:auto;
+    display:none;
+    border-radius:10px;
+    object-fit:contain;
+  }
+  .card-text { display:block; }
+  /* 照片模式：卡片自动放大到能看清整张竖图 */
+  .card.photo-mode {
+    top:6%;
+    height:auto;
+    max-height:88vh;
+    padding:10px;
+    overflow:auto;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:#fff;
+  }
+  .card.photo-mode .card-text { display:none; }
+  .card.photo-mode .card-img {
+    display:block;
+    width:auto;
+    max-width:100%;
+    max-height:55vh;
+  }
+  .img-fallback {
+    display:none;
+    color:#ff3d8f;
+    font-size:14px;
+    line-height:1.8;
+    text-align:center;
+    padding:20px 8px;
+  }
+  .card.photo-mode .img-fallback { display:block; }
+  .stage.open .flap { transform: rotateX(180deg); }
+  .stage.open .seal { top: -18px; }
+  .stage.open .card {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  /* ---- 合上信封 ---- */
+  .close-btn {
+    position: absolute;
+    top: -14px;
+    right: -14px;
+    z-index: 8;
+    width: 30px;
+    height: 30px;
+    border: none;
+    border-radius: 50%;
+    background: #fff;
+    color: #ff3d8f;
+    font-size: 15px;
+    line-height: 1;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(255, 85, 150, 0.35);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.25s ease, background 0.25s ease;
+  }
+  .stage.open .close-btn { display: flex; }
+  .close-btn:hover { transform: rotate(90deg); background: #ffe9f3; }
+
+  /* ---- 文字 / 照片 翻页切换 ---- */
+  @keyframes flipIn {
+    0%   { transform: rotateY(76deg); opacity: 0; }
+    100% { transform: rotateY(0deg);  opacity: 1; }
+  }
+  .card.flip-anim .card-text,
+  .card.flip-anim .card-img {
+    animation: flipIn 0.46s cubic-bezier(0.22, 0.68, 0.32, 1);
+    transform-origin: left center;
+    backface-visibility: hidden;
+  }
+
+  /* ---- JK 裙摆飘落 ---- */
+  .skirt-layer {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .skirt {
+    position: absolute;
+    top: -140px;
+    width: 64px;
+    height: 64px;
+    opacity: 0.8;
+    animation-name: skirtFall;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+    will-change: transform;
+  }
+  .skirt svg { width: 100%; height: 100%; display: block; }
+  @keyframes skirtFall {
+    0%   { transform: translate3d(0, -140px, 0) rotate(-12deg); }
+    50%  { transform: translate3d(28px, 55vh, 0) rotate(160deg); }
+    100% { transform: translate3d(-20px, 116vh, 0) rotate(338deg); }
+  }
+
+  .tip {
+    position: absolute;
+    bottom: 28px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #fff;
+    font-size: 13px;
+    letter-spacing: 2px;
+    z-index: 4;
+    opacity: 0.9;
+    animation: tip 2s ease-in-out infinite;
+  }
+  @keyframes tip {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+  }
+  .card::-webkit-scrollbar { width: 6px; }
+  .card::-webkit-scrollbar-thumb { background: #ffb3dc; border-radius: 3px; }
+  .card::-webkit-scrollbar-track { background: transparent; }
+  @media (max-width: 480px) {
+    .card { padding: 18px 16px; }
+    .card h2 { font-size: 18px; }
+    .card p { font-size: 13px; }
+  }
+  .bottle-btn{
+    position:fixed;
+    bottom:24px;
+    right:24px;
+    z-index:10;
+    padding:12px 18px;
+    border-radius:999px;
+    border:none;
+    background:#ff5596;
+    color:#fff;
+    font-size:14px;
+    cursor:pointer;
+    box-shadow:0 6px 16px rgba(255,85,150,0.35);
+  }
+  .sound-btn{
+    position:fixed;
+    left:20px;
+    bottom:22px;
+    z-index:10;
+    width:40px;
+    height:40px;
+    border-radius:50%;
+    border:none;
+    background:rgba(255,255,255,0.78);
+    color:#ff3d8f;
+    font-size:16px;
+    line-height:1;
+    cursor:pointer;
+    box-shadow:0 6px 16px rgba(255,85,150,0.25);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    transition:transform 0.2s ease, background 0.2s ease;
+  }
+  .sound-btn:hover { transform:scale(1.08); background:#fff; }
+  .sound-btn.off { color:#b9a3ae; background:rgba(255,255,255,0.55); }
+
+  /* ---- 互动小猫 ---- */
+  .cat{
+    position:fixed;
+    left:16px;
+    bottom:70px;
+    width:104px;
+    height:114px;
+    z-index:5;
+    cursor:pointer;
+    -webkit-tap-highlight-color:transparent;
+    user-select:none;
+  }
+  .cat-pose{
+    position:absolute;
+    inset:0;
+    transition:opacity .5s ease, transform .5s ease;
+  }
+  .cat-pose svg{ width:100%; height:100%; display:block; overflow:visible; }
+  .cat-lie{ opacity:0; transform:translateY(5px); }
+  .cat.lie .cat-sit{ opacity:0; transform:translateY(5px); }
+  .cat.lie .cat-lie{ opacity:1; transform:translateY(0); }
+
+  .cat-bubble{
+    position:absolute;
+    left:50%;
+    bottom:92px;
+    padding:3px 10px;
+    background:#fff;
+    border-radius:12px;
+    color:#ff3d8f;
+    font-size:13px;
+    font-weight:600;
+    white-space:nowrap;
+    opacity:0;
+    transform:translate(-50%,6px);
+    transition:opacity .25s ease, transform .25s ease;
+    pointer-events:none;
+    box-shadow:0 4px 12px rgba(255,85,150,.25);
+  }
+  .cat-bubble.show{ opacity:1; transform:translate(-50%,0); }
+
+  .cat-zzz{
+    position:absolute;
+    right:-4px;
+    top:-2px;
+    font-size:12px;
+    font-weight:700;
+    letter-spacing:2px;
+    color:#b57a99;
+    opacity:0;
+    transition:opacity .35s ease;
+  }
+  .cat.sleep .cat-zzz{ opacity:1; animation:zzzFloat 2.8s ease-in-out infinite; }
+  @keyframes zzzFloat{
+    0%{ transform:translateY(0); opacity:.9; }
+    70%{ transform:translateY(-16px); opacity:.15; }
+    100%{ transform:translateY(-16px); opacity:0; }
+  }
+
+  .cat-eye-closed{ display:none; }
+  .cat.sleep .cat-eye-closed{ display:block; }
+  .cat.sleep .cat-eye-open{ display:none; }
+
+  .cat-mouth-open{ display:none; }
+  .cat.meow .cat-mouth-open{ display:block; }
+  .cat.meow .cat-mouth-closed{ display:none; }
+
+  .cat-eye-open{
+    transform-box:fill-box;
+    transform-origin:center;
+    animation:catBlink 6.4s ease-in-out infinite;
+  }
+  @keyframes catBlink{
+    0%, 93%, 100%{ transform:scaleY(1); }
+    95.5%{ transform:scaleY(.08); }
+  }
+  .cat-tail{
+    transform-box:view-box;
+    transform-origin:90px 113px;
+    animation:catTail 2.8s ease-in-out infinite;
+  }
+  .cat-walk .cat-tail{ transform-origin:42px 84px; }
+  @keyframes catTail{
+    0%, 100%{ transform:rotate(-7deg); }
+    50%{ transform:rotate(9deg); }
+  }
+  .cat:active .cat-pose{ transform:translateY(2px) scale(.97); }
+
+  /* 走路姿态 */
+  .cat-walk{
+    opacity:0;
+    transform:translateY(4px) scale(1.18);
+    transform-origin:bottom center;
+  }
+  .cat.walk .cat-sit,
+  .cat.walk .cat-lie{ opacity:0; transform:translateY(4px); }
+  .cat.walk .cat-walk{ opacity:1; transform:translateY(0) scale(1.18); }
+
+  .cat-pose svg{ transition:transform .3s ease; }
+  .cat.facing-left .cat-pose svg{ transform:scaleX(-1); }
+
+  .cat-walk .leg{
+    transform-box:view-box;   /* 每条腿的转轴在 SVG 里用 style 单独指定 */
+  }
+  .cat.walk .leg-a{ animation:legSwingA .46s ease-in-out infinite; }
+  .cat.walk .leg-b{ animation:legSwingB .46s ease-in-out infinite; }
+  @keyframes legSwingA{
+    0%, 100%{ transform:rotate(16deg); }
+    50%{ transform:rotate(-16deg); }
+  }
+  @keyframes legSwingB{
+    0%, 100%{ transform:rotate(-16deg); }
+    50%{ transform:rotate(16deg); }
+  }
+
+  .msg-mask{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.4);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    z-index:20;
+    opacity:0;
+    pointer-events:none;
+    transition:0.3s;
+  }
+  .msg-mask.show{
+    opacity:1;
+    pointer-events:auto;
+  }
+  .msg-box{
+    width:min(82vw,400px);
+    background:#fff;
+    border-radius:16px;
+    padding:24px;
+  }
+  .msg-box textarea{
+    width:100%;
+    height:120px;
+    border:1px solid #ffc1dd;
+    border-radius:10px;
+    padding:12px;
+    font-size:14px;
+    outline:none;
+    resize:none;
+  }
+  .msg-actions{
+    display:flex;
+    gap:12px;
+    margin-top:16px;
+    justify-content:flex-end;
+  }
+  .msg-actions button{
+    padding:8px 16px;
+    border-radius:8px;
+    border:none;
+    cursor:pointer;
+  }
+  .submit{
+    background:#ff5596;
+    color:white;
+  }
+  .float-bottle{
+    position:absolute;
+    z-index:4;
+    width:54px;
+    height:70px;
+    cursor:pointer;
+    animation:bottleFloat 4s ease-in-out infinite;
+    transition:opacity .28s ease, transform .28s ease;
+  }
+  /* 点开之后的消失动画 */
+  .float-bottle.gone{
+    animation:none;
+    opacity:0;
+    transform:scale(.55) translateY(-14px);
+    pointer-events:none;
+  }
+  @keyframes bottleFloat{
+    0%,100%{transform:translateY(0) rotate(-4deg);}
+    50%{transform:translateY(-12px) rotate(4deg);}
+  }
+  .read-mask{
+    position:fixed;
+    inset:0;
+    background:rgba(255,182,212,0.75);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    z-index:25;
+    opacity:0;
+    pointer-events:none;
+    transition:0.3s;
+  }
+  .read-mask.show{
+    opacity:1;
+    pointer-events:auto;
+  }
+  .read-box{
+    width:min(80vw,360px);
+    background:#fff7fb;
+    padding:24px;
+    border-radius:16px;
+  }
+</style>
+</head>
+<body>
+<canvas id="snowCanvas"></canvas>
+<div class="skirt-layer" id="skirtLayer"></div>
+<canvas id="fireCanvas"></canvas>
+
+<div class="bunny b1">
+  <svg viewBox="0 0 100 100">
+    <ellipse class="ear-l" cx="30" cy="22" rx="7" ry="18" fill="#fff" stroke="#ffb3dc" stroke-width="2"/>
+    <ellipse class="ear-r" cx="70" cy="22" rx="7" ry="18" fill="#fff" stroke="#ffb3dc" stroke-width="2"/>
+    <ellipse cx="50" cy="62" rx="26" ry="22" fill="#fff" stroke="#ffb3dc" stroke-width="2"/>
+    <circle class="tail" cx="78" cy="70" r="8" fill="#fff" stroke="#ffb3dc" stroke-width="2"/>
+    <circle cx="42" cy="58" r="3" fill="#333"/>
+    <circle cx="58" cy="58" r="3" fill="#333"/>
+    <ellipse cx="50" cy="68" rx="4" ry="2.5" fill="#ff9ec7"/>
+  </svg>
+</div>
+<div class="bunny b2">
+  <svg viewBox="0 0 100 100">
+    <ellipse class="ear-l" cx="30" cy="22" rx="7" ry="18" fill="#fff" stroke="#ffb3dc" stroke-width="2"/>
+    <ellipse class="ear-r" cx="70" cy="22" rx="7" ry="18" fill="#fff" stroke="#ffb3dc" stroke-width="2"/>
+    <ellipse cx="50" cy="62" rx="26" ry="22" fill="#fff" stroke="#ffb3dc" stroke-width="2"/>
+    <circle class="tail" cx="78" cy="70" r="8" fill="#fff" stroke="#ffb3dc" stroke-width="2"/>
+    <circle cx="42" cy="58" r="3" fill="#333"/>
+    <circle cx="58" cy="58" r="3" fill="#333"/>
+    <ellipse cx="50" cy="68" rx="4" ry="2.5" fill="#ff9ec7"/>
+  </svg>
+</div>
+<div class="bunny b3">
+  <svg viewBox="0 0 100 100">
+    <ellipse class="ear-l" cx="30" cy="22" rx="7" ry="18" fill="#fff" stroke="#ffb3dc" stroke-width="2"/>
+    <ellipse class="ear-r" cx="70" cy="22" rx="7" ry="18" fill="#fff" stroke="#ffb3dc" stroke-width="2"/>
+    <ellipse cx="50" cy="62" rx="26" ry="22" fill="#fff" stroke="#ffb3dc" stroke-width="2"/>
+    <circle class="tail" cx="78" cy="70" r="8" fill="#fff" stroke="#ffb3dc" stroke-width="2"/>
+    <circle cx="42" cy="58" r="3" fill="#333"/>
+    <circle cx="58" cy="58" r="3" fill="#333"/>
+    <ellipse cx="50" cy="68" rx="4" ry="2.5" fill="#ff9ec7"/>
+  </svg>
+</div>
+<div class="bunny b4">
+  <svg viewBox="0 0 100 100">
+    <ellipse class="ear-l" cx="30" cy="22" rx="7" ry="18" fill="#fff" stroke="#ffb3dc" stroke-width="2"/>
+    <ellipse class="ear-r" cx="70" cy="22" rx="7" ry="18" fill="#fff" stroke="#ffb3dc" stroke-width="2"/>
+    <ellipse cx="50" cy="62" rx="26" ry="22" fill="#fff" stroke="#ffb3dc" stroke-width="2"/>
+    <circle class="tail" cx="78" cy="70" r="8" fill="#fff" stroke="#ffb3dc" stroke-width="2"/>
+    <circle cx="42" cy="58" r="3" fill="#333"/>
+    <circle cx="58" cy="58" r="3" fill="#333"/>
+    <ellipse cx="50" cy="68" rx="4" ry="2.5" fill="#ff9ec7"/>
+  </svg>
+</div>
+
+<div class="stage" id="stage">
+  <div class="envelope">
+    <div class="envelope-line l2"></div>
+    <div class="envelope-line"></div>
+    <div class="envelope-line l3"></div>
+  </div>
+  <div class="flap"></div>
+  <div class="seal"></div>
+  <div class="card" id="card">
+    <div class="card-text">
+      <h2>慧娴，生日快乐</h2>
+      <p>认识你快六年了，这个数字说出来，连我自己都愣了一下。刚开始的时候，我其实不太敢跟你说话，总觉得你身上带着一点距离感。慢慢熟悉之后，才发现你特别温柔好相处。那段日子，随便分享日常、随口闲聊，都是很舒服的时光。</p>
+      <p>后来我们慢慢少了联系，聊天框安静下来，心里其实一直觉得遗憾。不是怪谁，只是常常会想，好好的关系，怎么就慢慢变淡了。</p>
+      <p>六年的缘分不是轻易就能抹去的，那些相处的片段我一直记得。今天不想只发一句简单的生日快乐，我想认真告诉你：我很珍惜和你的这份情谊。如果你愿意，我们可以慢慢重新熟悉，不用着急，顺其自然就好。</p>
+      <p>新的一岁，愿你平安顺遂，少些烦恼，想要做的事都能如愿。慧娴，生日快乐。希望我们的故事，不止停留在过去。</p>
+      
+    </div>
+    <img class="card-img" id="cardImg" src="photo.jpg" alt="合照" />
+  </div>
+  <button class="close-btn" id="closeCard" type="button" title="合上信封" aria-label="合上信封">✕</button>
+</div>
+<div class="tip" id="tip">点击信封打开</div>
+
+<button class="sound-btn" id="soundBtn" type="button" title="音效开关">🔊</button>
+
+<div class="cat" id="cat" title="摸摸我">
+  <div class="cat-bubble" id="catBubble">喵～</div>
+  <div class="cat-zzz" id="catZzz">Z z</div>
+
+  <!-- 坐姿 -->
+  <div class="cat-pose cat-sit">
+    <svg viewBox="0 0 120 130" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id="rdHeadS" cx="45%" cy="34%" r="74%">
+          <stop offset="0%" stop-color="#ffffff"/>
+          <stop offset="68%" stop-color="#f7f1e6"/>
+          <stop offset="100%" stop-color="#ded3c2"/>
+        </radialGradient>
+        <linearGradient id="rdBodyS" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#fefbf5"/>
+          <stop offset="58%" stop-color="#f5efe4"/>
+          <stop offset="100%" stop-color="#e3d9c9"/>
+        </linearGradient>
+        <radialGradient id="rdMaskS" cx="50%" cy="52%" r="56%">
+          <stop offset="0%" stop-color="#6d5747" stop-opacity="0.82"/>
+          <stop offset="45%" stop-color="#6d5747" stop-opacity="0.5"/>
+          <stop offset="78%" stop-color="#6d5747" stop-opacity="0.16"/>
+          <stop offset="100%" stop-color="#6d5747" stop-opacity="0"/>
+        </radialGradient>
+        <radialGradient id="rdEyeS" cx="40%" cy="32%" r="72%">
+          <stop offset="0%" stop-color="#a8d8f7"/>
+          <stop offset="55%" stop-color="#4f93d8"/>
+          <stop offset="100%" stop-color="#2a5c99"/>
+        </radialGradient>
+        <filter id="rdBlurS" x="-60%" y="-60%" width="220%" height="220%">
+          <feGaussianBlur stdDeviation="2"/>
+        </filter>
+      </defs>
+
+      <ellipse cx="60" cy="127" rx="39" ry="5" fill="#7a3f57" opacity="0.26" filter="url(#rdBlurS)"/>
+
+      <!-- 蓬松尾巴 + 深色尾尖 -->
+      <path class="cat-tail" d="M82 114 C106 120 116 97 106 80" fill="none" stroke="#ded3c2" stroke-width="21" stroke-linecap="round"/>
+      <path class="cat-tail" d="M82 114 C106 120 116 97 106 80" fill="none" stroke="#fdfaf4" stroke-width="14" stroke-linecap="round"/>
+      <circle class="cat-tail" cx="106" cy="80" r="10" fill="#6d5747"/>
+
+      <!-- 耳朵（重点色） -->
+      <path d="M36 43 C32 33 28 21 27 13 C38 15 50 25 56 34 Z" fill="#6d5747" stroke="#5a4738" stroke-width="1.1" stroke-linejoin="round"/>
+      <path d="M84 43 C88 33 92 21 93 13 C82 15 70 25 64 34 Z" fill="#6d5747" stroke="#5a4738" stroke-width="1.1" stroke-linejoin="round"/>
+      <path d="M40 39 C38 32 34 24 33 19 C40 22 47 28 51 33 Z" fill="#d9a9a4"/>
+      <path d="M80 39 C82 32 86 24 87 19 C80 22 73 28 69 33 Z" fill="#d9a9a4"/>
+
+      <!-- 身体：下缘做成毛边 -->
+      <path d="M60 60 C85 60 99 81 99 103 C99 114 95 121 88 125 L81 119 L74 127 L66 120 L59 128 L52 120 L45 127 L38 120 L31 125 C24 121 21 113 21 103 C21 81 35 60 60 60 Z"
+            fill="url(#rdBodyS)" stroke="#d6cbba" stroke-width="1.1"/>
+
+      <!-- 腹部浅色毛（一整块，不分瓣） -->
+      <ellipse cx="60" cy="110" rx="17" ry="14" fill="#fffdf9" opacity="0.55"/>
+
+      <!-- 爪子（重点色） -->
+      <ellipse cx="46" cy="123" rx="11.5" ry="6.8" fill="#7f6959"/>
+      <ellipse cx="74" cy="123" rx="11.5" ry="6.8" fill="#7f6959"/>
+      <path d="M42 122 v3.4 M48 122 v3.4 M72 122 v3.4 M78 122 v3.4" stroke="#5f4c3e" stroke-width="1" opacity="0.7" stroke-linecap="round"/>
+
+      <!-- 头 -->
+      <path d="M60 24 C82 24 93 40 93 57 C93 75 78 84 60 84 C42 84 27 75 27 57 C27 40 38 24 60 24 Z"
+            fill="url(#rdHeadS)" stroke="#d6cbba" stroke-width="1.1"/>
+      <!-- 脸颊长毛 -->
+      <path d="M28 62 L16 72 L29 77 Z" fill="url(#rdHeadS)" stroke="#d6cbba" stroke-width="1"/>
+      <path d="M92 62 L104 72 L91 77 Z" fill="url(#rdHeadS)" stroke="#d6cbba" stroke-width="1"/>
+
+      <!-- 面罩 -->
+      <ellipse cx="60" cy="60" rx="27" ry="21" fill="url(#rdMaskS)"/>
+
+      <!-- 白口鼻 -->
+      <ellipse cx="60" cy="68" rx="14" ry="11" fill="#fefcf8"/>
+
+      <!-- 眼睛（蓝） -->
+      <g class="cat-eye-open">
+        <ellipse cx="48" cy="57" rx="7.6" ry="7" fill="url(#rdEyeS)"/>
+        <ellipse cx="72" cy="57" rx="7.6" ry="7" fill="url(#rdEyeS)"/>
+        <ellipse cx="48" cy="57" rx="2" ry="4.9" fill="#1b1b22"/>
+        <ellipse cx="72" cy="57" rx="2" ry="4.9" fill="#1b1b22"/>
+        <circle cx="45.9" cy="54.2" r="1.6" fill="#fff"/>
+        <circle cx="69.9" cy="54.2" r="1.6" fill="#fff"/>
+        <path d="M40.4 51.6 C44 47.4 52 47.4 55.6 51.6" fill="none" stroke="#4a3a2e" stroke-width="1.6" stroke-linecap="round"/>
+        <path d="M64.4 51.6 C68 47.4 76 47.4 79.6 51.6" fill="none" stroke="#4a3a2e" stroke-width="1.6" stroke-linecap="round"/>
+      </g>
+      <path class="cat-eye-closed" d="M41 58 q7 5 14 0" fill="none" stroke="#4a3a2e" stroke-width="2.2" stroke-linecap="round"/>
+      <path class="cat-eye-closed" d="M65 58 q7 5 14 0" fill="none" stroke="#4a3a2e" stroke-width="2.2" stroke-linecap="round"/>
+
+      <!-- 鼻子 / 嘴 -->
+      <path d="M56.4 64.6 L63.6 64.6 L60 68.6 Z" fill="#c08d8d" stroke="#a57373" stroke-width="0.8" stroke-linejoin="round"/>
+      <path d="M60 68.6 v2.6" stroke="#8b6a5c" stroke-width="1.1" stroke-linecap="round"/>
+      <path class="cat-mouth-closed" d="M54.2 71.8 C57 74.8 60 72.8 60 71 C60 72.8 63 74.8 65.8 71.8" fill="none" stroke="#8b6a5c" stroke-width="1.2" stroke-linecap="round"/>
+      <ellipse class="cat-mouth-open" cx="60" cy="71.4" rx="4.4" ry="5" fill="#c0657e"/>
+
+      <!-- 胡须 -->
+      <path d="M36 64 C30 62.5 24 62 18.5 62.5 M36 68 C30 68 24 69 18.5 70.5 M36.5 72 C31 74 26 77 21.5 80.5" fill="none" stroke="#ffffff" stroke-width="1.2" opacity="0.95" stroke-linecap="round"/>
+      <path d="M84 64 C90 62.5 96 62 101.5 62.5 M84 68 C90 68 96 69 101.5 70.5 M83.5 72 C89 74 94 77 98.5 80.5" fill="none" stroke="#ffffff" stroke-width="1.2" opacity="0.95" stroke-linecap="round"/>
+    </svg>
+  </div>
+
+  <!-- 躺姿 -->
+  <div class="cat-pose cat-lie">
+    <svg viewBox="0 0 120 130" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id="rdHeadL" cx="45%" cy="34%" r="74%">
+          <stop offset="0%" stop-color="#ffffff"/>
+          <stop offset="68%" stop-color="#f7f1e6"/>
+          <stop offset="100%" stop-color="#ded3c2"/>
+        </radialGradient>
+        <linearGradient id="rdBodyL" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#fefbf5"/>
+          <stop offset="58%" stop-color="#f5efe4"/>
+          <stop offset="100%" stop-color="#e3d9c9"/>
+        </linearGradient>
+        <radialGradient id="rdMaskL" cx="50%" cy="52%" r="56%">
+          <stop offset="0%" stop-color="#6d5747" stop-opacity="0.8"/>
+          <stop offset="45%" stop-color="#6d5747" stop-opacity="0.48"/>
+          <stop offset="78%" stop-color="#6d5747" stop-opacity="0.16"/>
+          <stop offset="100%" stop-color="#6d5747" stop-opacity="0"/>
+        </radialGradient>
+        <radialGradient id="rdEyeL" cx="40%" cy="32%" r="72%">
+          <stop offset="0%" stop-color="#a8d8f7"/>
+          <stop offset="55%" stop-color="#4f93d8"/>
+          <stop offset="100%" stop-color="#2a5c99"/>
+        </radialGradient>
+        <filter id="rdBlurL" x="-60%" y="-60%" width="220%" height="220%">
+          <feGaussianBlur stdDeviation="2"/>
+        </filter>
+      </defs>
+
+      <ellipse cx="58" cy="125" rx="46" ry="5" fill="#7a3f57" opacity="0.26" filter="url(#rdBlurL)"/>
+
+      <path class="cat-tail" d="M92 111 C112 111 118 92 106 79" fill="none" stroke="#ded3c2" stroke-width="19" stroke-linecap="round"/>
+      <path class="cat-tail" d="M92 111 C112 111 118 92 106 79" fill="none" stroke="#fdfaf4" stroke-width="13" stroke-linecap="round"/>
+      <circle class="cat-tail" cx="106" cy="79" r="9" fill="#6d5747"/>
+
+      <path d="M13 89 C10 80 6 70 5 64 C14 66 25 72 31 79 Z" fill="#6d5747" stroke="#5a4738" stroke-width="1.1" stroke-linejoin="round"/>
+      <path d="M45 87 C48 78 54 70 55 64 C46 66 35 72 29 79 Z" fill="#6d5747" stroke="#5a4738" stroke-width="1.1" stroke-linejoin="round"/>
+      <path d="M17 85 C15 79 12 72 11 68 C17 71 23 75 27 80 Z" fill="#d9a9a4"/>
+      <path d="M41 83 C43 77 46 72 47 68 C41 71 35 75 31 80 Z" fill="#d9a9a4"/>
+
+      <ellipse cx="60" cy="108" rx="45" ry="19" fill="url(#rdBodyL)" stroke="#d6cbba" stroke-width="1.1"/>
+      <ellipse cx="62" cy="111" rx="34" ry="10" fill="#fffdf9" opacity="0.9"/>
+
+      <ellipse cx="26" cy="120" rx="9.5" ry="5.4" fill="#7f6959"/>
+      <ellipse cx="46" cy="121" rx="9.5" ry="5.4" fill="#7f6959"/>
+      <path d="M23 119 v3 M29 119 v3 M43 120 v3 M49 120 v3" stroke="#5f4c3e" stroke-width="1" opacity="0.7" stroke-linecap="round"/>
+
+      <path d="M30 76 C50 76 58 88 58 100 C58 114 47 120 30 120 C13 120 2 114 2 100 C2 88 10 76 30 76 Z" fill="url(#rdHeadL)" stroke="#d6cbba" stroke-width="1.1"/>
+      <path d="M9 102 L0 110 L10 115 Z" fill="url(#rdHeadL)" stroke="#d6cbba" stroke-width="1"/>
+
+      <ellipse cx="30" cy="99" rx="22" ry="17" fill="url(#rdMaskL)"/>
+      <ellipse cx="30" cy="106" rx="12" ry="9" fill="#fefcf8"/>
+
+      <g class="cat-eye-open">
+        <ellipse cx="21" cy="97" rx="6.2" ry="5.8" fill="url(#rdEyeL)"/>
+        <ellipse cx="39" cy="97" rx="6.2" ry="5.8" fill="url(#rdEyeL)"/>
+        <ellipse cx="21" cy="97" rx="1.7" ry="4.1" fill="#1b1b22"/>
+        <ellipse cx="39" cy="97" rx="1.7" ry="4.1" fill="#1b1b22"/>
+        <circle cx="19.3" cy="94.8" r="1.3" fill="#fff"/>
+        <circle cx="37.3" cy="94.8" r="1.3" fill="#fff"/>
+        <path d="M14.6 92.8 C17.4 89.6 24.6 89.6 27.4 92.8" fill="none" stroke="#4a3a2e" stroke-width="1.4" stroke-linecap="round"/>
+        <path d="M32.6 92.8 C35.4 89.6 42.6 89.6 45.4 92.8" fill="none" stroke="#4a3a2e" stroke-width="1.4" stroke-linecap="round"/>
+      </g>
+      <path class="cat-eye-closed" d="M15 98 q6 4.6 12 0" fill="none" stroke="#4a3a2e" stroke-width="2" stroke-linecap="round"/>
+      <path class="cat-eye-closed" d="M33 98 q6 4.6 12 0" fill="none" stroke="#4a3a2e" stroke-width="2" stroke-linecap="round"/>
+
+      <path d="M27.2 104.4 L32.8 104.4 L30 107.6 Z" fill="#c08d8d" stroke="#a57373" stroke-width="0.7" stroke-linejoin="round"/>
+      <path d="M30 107.6 v2.2" stroke="#8b6a5c" stroke-width="1" stroke-linecap="round"/>
+      <path class="cat-mouth-closed" d="M25.2 110.8 C27.4 113.2 30 111.8 30 110.2 C30 111.8 32.6 113.2 34.8 110.8" fill="none" stroke="#8b6a5c" stroke-width="1.1" stroke-linecap="round"/>
+      <ellipse class="cat-mouth-open" cx="30" cy="111" rx="3.8" ry="4.2" fill="#c0657e"/>
+
+      <path d="M12 103 C7 102 3 102 0.5 102.5 M12 106 C7 106.5 3 107 0.5 108" fill="none" stroke="#ffffff" stroke-width="1.1" opacity="0.95" stroke-linecap="round"/>
+      <path d="M48 103 C53 102 57 102 59.5 102.5 M48 106 C53 106.5 57 107 59.5 108" fill="none" stroke="#ffffff" stroke-width="1.1" opacity="0.95" stroke-linecap="round"/>
+    </svg>
+  </div>
+
+  <!-- 走路姿态（侧面） -->
+  <div class="cat-pose cat-walk">
+    <svg viewBox="0 0 140 130" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id="rdHeadW" cx="45%" cy="32%" r="74%">
+          <stop offset="0%" stop-color="#ffffff"/>
+          <stop offset="68%" stop-color="#f7f1e6"/>
+          <stop offset="100%" stop-color="#ded3c2"/>
+        </radialGradient>
+        <linearGradient id="rdBodyW" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#fefbf5"/>
+          <stop offset="58%" stop-color="#f5efe4"/>
+          <stop offset="100%" stop-color="#e3d9c9"/>
+        </linearGradient>
+        <radialGradient id="rdMaskW" cx="52%" cy="50%" r="58%">
+          <stop offset="0%" stop-color="#6d5747" stop-opacity="0.78"/>
+          <stop offset="48%" stop-color="#6d5747" stop-opacity="0.45"/>
+          <stop offset="80%" stop-color="#6d5747" stop-opacity="0.14"/>
+          <stop offset="100%" stop-color="#6d5747" stop-opacity="0"/>
+        </radialGradient>
+        <radialGradient id="rdEyeW" cx="40%" cy="32%" r="72%">
+          <stop offset="0%" stop-color="#a8d8f7"/>
+          <stop offset="55%" stop-color="#4f93d8"/>
+          <stop offset="100%" stop-color="#2a5c99"/>
+        </radialGradient>
+        <filter id="rdBlurW" x="-60%" y="-60%" width="220%" height="220%">
+          <feGaussianBlur stdDeviation="2"/>
+        </filter>
+      </defs>
+
+      <ellipse cx="74" cy="125" rx="56" ry="5.2" fill="#7a3f57" opacity="0.26" filter="url(#rdBlurW)"/>
+
+      <path class="cat-tail" d="M42 84 C18 80 10 58 24 42" fill="none" stroke="#ded3c2" stroke-width="23" stroke-linecap="round"/>
+      <path class="cat-tail" d="M42 84 C18 80 10 58 24 42" fill="none" stroke="#fdfaf4" stroke-width="16" stroke-linecap="round"/>
+      <circle class="cat-tail" cx="24" cy="42" r="10.5" fill="#6d5747"/>
+
+      <g class="leg leg-b" style="transform-origin:42px 92px">
+        <path d="M42 92 C44 104 43 114 42 120" stroke="#e6dccb" stroke-width="11.5" fill="none" stroke-linecap="round"/>
+        <ellipse cx="42" cy="121" rx="7" ry="4.2" fill="#7f6959"/>
+      </g>
+      <g class="leg leg-b" style="transform-origin:100px 90px">
+        <path d="M100 90 C102 102 101 112 100 118" stroke="#e6dccb" stroke-width="11.5" fill="none" stroke-linecap="round"/>
+        <ellipse cx="100" cy="119" rx="7" ry="4.2" fill="#7f6959"/>
+      </g>
+
+      <path d="M36 82 C40 68 56 62 76 62 C96 62 112 68 117 80 C121 90 118 100 111 106 L103 100 L96 108 L88 101 L80 109 L72 101 L64 109 L56 101 L48 108 L41 100 C33 95 30 90 36 82 Z"
+            fill="url(#rdBodyW)" stroke="#d6cbba" stroke-width="1.1"/>
+      <ellipse cx="76" cy="96" rx="33" ry="9" fill="#fffdf9" opacity="0.7"/>
+
+      <g class="leg leg-a" style="transform-origin:52px 96px">
+        <path d="M52 96 C54 108 53 116 52 122" stroke="#f7f1e6" stroke-width="11" fill="none" stroke-linecap="round"/>
+        <ellipse cx="52" cy="123" rx="7" ry="4.2" fill="#7f6959"/>
+      </g>
+      <g class="leg leg-a" style="transform-origin:106px 94px">
+        <path d="M106 94 C108 106 107 114 106 120" stroke="#f7f1e6" stroke-width="11" fill="none" stroke-linecap="round"/>
+        <ellipse cx="106" cy="121" rx="7" ry="4.2" fill="#7f6959"/>
+      </g>
+
+      <path d="M100 46 C97 38 94 32 93 28 C100 30 109 36 113 41 Z" fill="#6d5747" stroke="#5a4738" stroke-width="1.1" stroke-linejoin="round"/>
+      <path d="M126 45 C129 37 132 31 133 27 C126 29 117 35 113 40 Z" fill="#6d5747" stroke="#5a4738" stroke-width="1.1" stroke-linejoin="round"/>
+      <path d="M103 43 C101 37 99 33 98 30 C103 32 109 36 112 40 Z" fill="#d9a9a4"/>
+      <path d="M124 42 C126 36 128 32 129 29 C125 31 119 35 116 39 Z" fill="#d9a9a4"/>
+
+      <path d="M100 74 C104 68 110 66 116 68 L118 84 C112 88 104 86 100 82 Z" fill="url(#rdHeadW)"/>
+      <path d="M114 39 C127 39 134 48 134 59 C134 70 125 77 114 77 C103 77 95 70 95 59 C95 48 102 39 114 39 Z"
+            fill="url(#rdHeadW)" stroke="#d6cbba" stroke-width="1.1"/>
+
+      <ellipse cx="114" cy="60" rx="20" ry="17" fill="url(#rdMaskW)"/>
+      <ellipse cx="127" cy="65" rx="8" ry="6.4" fill="#fefcf8"/>
+
+      <g class="cat-eye-open">
+        <ellipse cx="121" cy="57" rx="6.4" ry="5.8" fill="url(#rdEyeW)"/>
+        <ellipse cx="121.3" cy="57" rx="1.7" ry="4.1" fill="#1b1b22"/>
+        <circle cx="119.4" cy="54.6" r="1.3" fill="#fff"/>
+        <path d="M115 51.8 C117.8 48.8 124.6 48.8 127.4 51.8" fill="none" stroke="#4a3a2e" stroke-width="1.4" stroke-linecap="round"/>
+      </g>
+      <path class="cat-eye-closed" d="M116 58 q6 4.6 11 0" fill="none" stroke="#4a3a2e" stroke-width="2" stroke-linecap="round"/>
+
+      <path d="M128.2 61.6 L132.8 61.6 L130.5 64.6 Z" fill="#c08d8d" stroke="#a57373" stroke-width="0.7" stroke-linejoin="round"/>
+      <path d="M130.5 64.6 v2" stroke="#8b6a5c" stroke-width="1" stroke-linecap="round"/>
+      <path class="cat-mouth-closed" d="M126.4 68 C128.4 70.4 130.5 69.2 130.5 67.6 C130.5 69.2 133 70.4 135 68" fill="none" stroke="#8b6a5c" stroke-width="1.1" stroke-linecap="round"/>
+      <ellipse class="cat-mouth-open" cx="131" cy="69" rx="3.4" ry="3.8" fill="#c0657e"/>
+
+      <path d="M133 65 C136 64 138.5 63.5 140 63.5 M133 67.5 C136 67.5 138.5 68 140 68.5" fill="none" stroke="#ffffff" stroke-width="1.1" opacity="0.95" stroke-linecap="round"/>
+    </svg>
+  </div>
+</div>
+
+<button class="bottle-btn" id="openBottleBtn">💌 写下漂流瓶</button>
+
+<div class="msg-mask" id="writeMask">
+  <div class="msg-box">
+    <h3 style="margin-bottom:12px;color:#ff3d8f">写下你的留言</h3>
+    <textarea id="msgInput" placeholder>写下想对慧娴说的话…</textarea>
+    <div class="msg-actions">
+      <button id="cancelWrite">取消</button>
+      <button class="submit" id="sendMsg">投放漂流瓶</button>
+    </div>
+  </div>
+</div>
+<div class="read-mask" id="readMask">
+  <div class="read-box">
+    <p id="readText" style="color:#5a3d4f;line-height:1.7;"></p>
+    <div style="text-align:right;margin-top:16px;">
+      <button id="closeRead" style="padding:6px 14px;border:none;background:#ff5596;color:#fff;border-radius:8px;">收好</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const snowCanvas = document.getElementById("snowCanvas");
+const snowCtx = snowCanvas.getContext("2d");
+let sw, sh, snowList = [];
+function resize(){
+  sw = snowCanvas.width = window.innerWidth;
+  sh = snowCanvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener("resize", resize);
+class Snow{
+  constructor(){
+    this.reset();
+  }
+  reset(){
+    this.x = Math.random()*sw;
+    this.y = Math.random()*-sh;
+    this.r = Math.random()*2+1;
+    this.speedY = Math.random()*1+0.3;
+    this.speedX = Math.random()*0.4-0.2;
+  }
+  update(){
+    this.x += this.speedX;
+    this.y += this.speedY;
+    if(this.y>sh) this.reset();
+  }
+  draw(){
+    snowCtx.beginPath();
+    snowCtx.arc(this.x,this.y,this.r,0,Math.PI*2);
+    snowCtx.fillStyle="#fff";
+    snowCtx.fill();
+  }
+}
+for(let i=0;i<85;i++) snowList.push(new Snow());
+function snowLoop(){
+  snowCtx.clearRect(0,0,sw,sh);
+  snowList.forEach(s=>{s.update();s.draw();})
+  requestAnimationFrame(snowLoop);
+}
+snowLoop();
+
+// ---- JK 裙摆飘落（在雪花之上、信封之下）----
+(function(){
+  const layer = document.getElementById('skirtLayer');
+  if (!layer) return;
+
+  // JK 格纹配色：base 底色 / tone 粗格 / lineA 细线 / lineB 亮线 / band 腰头
+  const palettes = [
+    { base: '#2b3859', tone: '#3a4a70', lineA: '#c8455a', lineB: '#ffffff', band: '#1b2338' }, // 藏青 × 红白线
+    { base: '#7d7f88', tone: '#8f919a', lineA: '#2c3a5e', lineB: '#eaeaee', band: '#4a4b52' }, // 灰 × 藏青线
+    { base: '#7d2f3d', tone: '#8f3a49', lineA: '#2a1216', lineB: '#e8cfd4', band: '#4a1b25' }, // 酒红 × 黑线
+    { base: '#d9cbb4', tone: '#e6dbc9', lineA: '#8a6a4a', lineB: '#ffffff', band: '#6b5b4a' }  // 米色 × 棕线
+  ];
+  const pleatCounts = [8, 8, 6, 10];
+
+  // 百褶裙：格纹填充 + 褶片明暗 + 腰头
+  function skirtSVG(c, n, idx){
+    n = n || 8;
+    const topY = 36, hemY = 102;
+    const waistL = 38, waistR = 82;
+    const hemL = 20, hemR = 100;
+    const w = waistR - waistL, h = hemR - hemL;
+    const pid = 'skirtPlaid' + (idx || 0);
+
+    let s = '<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">';
+
+    // 苏格兰格纹
+    s += '<defs><pattern id="' + pid + '" width="18" height="18" patternUnits="userSpaceOnUse">'
+       + '<rect width="18" height="18" fill="' + c.base + '"/>'
+       + '<rect y="4" width="18" height="4" fill="' + c.tone + '" opacity="0.85"/>'
+       + '<rect x="4" width="4" height="18" fill="' + c.tone + '" opacity="0.85"/>'
+       + '<rect y="11" width="18" height="1.6" fill="' + c.lineA + '" opacity="0.9"/>'
+       + '<rect x="11" width="1.6" height="18" fill="' + c.lineA + '" opacity="0.9"/>'
+       + '<rect y="15" width="18" height="1" fill="' + c.lineB + '" opacity="0.45"/>'
+       + '<rect x="15" width="1" height="18" fill="' + c.lineB + '" opacity="0.45"/>'
+       + '</pattern></defs>';
+
+    // 裙身
+    const bodyPath = 'M' + waistL + ' ' + topY + ' L' + waistR + ' ' + topY +
+         ' L' + hemR + ' ' + hemY + ' Q60 ' + (hemY + 5) + ' ' + hemL + ' ' + hemY + ' Z';
+    s += '<path d="' + bodyPath + '" fill="url(#' + pid + ')"/>';
+
+    // 褶片：受光面提亮、背光面压暗
+    for (let i = 0; i < n; i++){
+      const t0 = i / n, t1 = (i + 1) / n;
+      const xa = (waistL + w * t0).toFixed(2), xb = (waistL + w * t1).toFixed(2);
+      const xc = (hemL + h * t1).toFixed(2), xd = (hemL + h * t0).toFixed(2);
+      const tone = (i % 2 === 0) ? '#ffffff' : '#000000';
+      s += '<path d="M' + xa + ' ' + topY + ' L' + xb + ' ' + topY +
+           ' L' + xc + ' ' + hemY + ' L' + xd + ' ' + hemY +
+           ' Z" fill="' + tone + '" opacity="0.09"/>';
+    }
+
+    // 左右体积
+    s += '<path d="M' + waistL + ' ' + topY + ' L' + hemL + ' ' + hemY +
+         ' L' + (hemL + 14) + ' ' + hemY + ' L' + (waistL + 9) + ' ' + topY +
+         ' Z" fill="#fff" opacity="0.10"/>';
+    s += '<path d="M' + waistR + ' ' + topY + ' L' + hemR + ' ' + hemY +
+         ' L' + (hemR - 14) + ' ' + hemY + ' L' + (waistR - 9) + ' ' + topY +
+         ' Z" fill="#000" opacity="0.10"/>';
+
+    // 腰头（带一颗扣子）
+    s += '<rect x="' + (waistL - 3) + '" y="' + (topY - 12) + '" width="' + (w + 6) +
+         '" height="13" rx="4" fill="' + c.band + '"/>';
+    s += '<rect x="' + (waistL - 3) + '" y="' + (topY - 12) + '" width="' + (w + 6) +
+         '" height="4" rx="2" fill="#fff" opacity="0.16"/>';
+    s += '<circle cx="' + (waistL + 5) + '" cy="' + (topY - 5.5) + '" r="2.1" fill="#d8b25a"/>';
+
+    // 下摆收边
+    s += '<path d="M' + hemL + ' ' + hemY + ' Q60 ' + (hemY + 5) + ' ' + hemR + ' ' + hemY +
+         '" fill="none" stroke="' + c.band + '" stroke-width="1.6" opacity="0.5"/>';
+
+    return s + '</svg>';
+  }
+
+  const COUNT = 14;
+  for (let i = 0; i < COUNT; i++){
+    const el = document.createElement('div');
+    el.className = 'skirt';
+    const pi = i % palettes.length;
+    el.innerHTML = skirtSVG(palettes[pi], pleatCounts[pi], i);
+
+    const size = Math.round(38 + Math.random() * 44);
+    el.style.left = (Math.random() * 100).toFixed(2) + 'vw';
+    el.style.width = size + 'px';
+    el.style.height = size + 'px';
+    el.style.opacity = (0.55 + Math.random() * 0.4).toFixed(2);
+    el.style.animationDuration = (10 + Math.random() * 9).toFixed(2) + 's';
+    el.style.animationDelay = (-Math.random() * 19).toFixed(2) + 's';
+
+    layer.appendChild(el);
+  }
+})();
+
+const fireCanvas = document.getElementById("fireCanvas");
+const fireCtx = fireCanvas.getContext("2d");
+fireCanvas.width = window.innerWidth;
+fireCanvas.height = window.innerHeight;
+window.addEventListener("resize",()=>{
+  fireCanvas.width = window.innerWidth;
+  fireCanvas.height = window.innerHeight;
+})
+let fireList = [];
+class Particle{
+  constructor(x,y){
+    this.x=x;this.y=y;
+    const a = Math.random()*Math.PI*2;
+    const v = Math.random()*4+2;
+    this.vx = Math.cos(a)*v;
+    this.vy = Math.sin(a)*v;
+    this.alpha = 1;
+    this.color = ["#ff5596","#ffd1e8","#ffffff","#ff9ec7"][Math.floor(Math.random()*4)];
+  }
+  update(){
+    this.x += this.vx;
+    this.y += this.vy;
+    this.alpha -= 0.018;
+  }
+  draw(){
+    fireCtx.save();
+    fireCtx.globalAlpha=this.alpha;
+    fireCtx.beginPath();
+    fireCtx.arc(this.x,this.y,2,0,Math.PI*2);
+    fireCtx.fillStyle=this.color;
+    fireCtx.fill();
+    fireCtx.restore();
+  }
+}
+function boom(x,y){
+  for(let i=0;i<70;i++) fireList.push(new Particle(x,y));
+}
+function fireLoop(){
+  fireCtx.clearRect(0,0,fireCanvas.width,fireCanvas.height);
+  for(let i=fireList.length-1;i>=0;i--){
+    const p=fireList[i];
+    p.update();p.draw();
+    if(p.alpha<=0) fireList.splice(i,1);
+  }
+  requestAnimationFrame(fireLoop);
+}
+fireLoop();
+
+/* ==========================================================
+   音效：全部用 Web Audio 实时合成，不需要任何音频文件
+   ① 烟花爆炸声（目前不触发，保留备用）
+   ② 猫叫
+   ③ 漂流瓶碎裂
+   （浏览器要求在用户点击后才允许出声，所以都挂在点击里）
+   ========================================================== */
+const AudioCtxClass = window.AudioContext || window.webkitAudioContext;
+let audioCtx = null;
+let masterGain = null;
+let soundOn = true;
+
+try { soundOn = localStorage.getItem('firework_sound_off') !== '1'; } catch (e) {}
+
+function ensureAudio(){
+  if (!AudioCtxClass) return null;
+  if (!audioCtx){
+    try {
+      audioCtx = new AudioCtxClass();
+      masterGain = audioCtx.createGain();
+      masterGain.gain.value = 0.9;
+      masterGain.connect(audioCtx.destination);
+    } catch (e) { return null; }
+  }
+  if (audioCtx.state === 'suspended') { audioCtx.resume(); }
+  return audioCtx;
+}
+
+// 注：烟花本身的音效目前不再自动触发（只有视觉烟花）；
+// 想在空白处点击时也出声，就把 playFirework() 加回下面的 body 点击里。
+function playFirework(){
+  if (!soundOn) return;
+  const ctx = ensureAudio();
+  if (!ctx || !masterGain) return;
+
+  const t0 = ctx.currentTime;
+  const pitch = 0.82 + Math.random() * 0.4;   // 每次音高略有不同
+
+  // ① 低频“咚”——火药的闷响
+  const osc = ctx.createOscillator();
+  const oscGain = ctx.createGain();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(190 * pitch, t0);
+  osc.frequency.exponentialRampToValueAtTime(48, t0 + 0.42);
+  oscGain.gain.setValueAtTime(0.0001, t0);
+  oscGain.gain.exponentialRampToValueAtTime(0.55, t0 + 0.012);
+  oscGain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.75);
+  osc.connect(oscGain).connect(masterGain);
+  osc.start(t0);
+  osc.stop(t0 + 0.8);
+
+  // ② 爆裂噪声——用带通滤波的短噪声
+  const dur = 0.55;
+  const len = Math.max(1, Math.floor(ctx.sampleRate * dur));
+  const buffer = ctx.createBuffer(1, len, ctx.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < len; i++){
+    const k = Math.pow(1 - i / len, 3.2);
+    data[i] = (Math.random() * 2 - 1) * k;
+  }
+  const noise = ctx.createBufferSource();
+  noise.buffer = buffer;
+  const bp = ctx.createBiquadFilter();
+  bp.type = 'bandpass';
+  bp.frequency.setValueAtTime(1500 * pitch, t0);
+  bp.frequency.exponentialRampToValueAtTime(600 * pitch, t0 + dur);
+  bp.Q.value = 0.7;
+  const noiseGain = ctx.createGain();
+  noiseGain.gain.setValueAtTime(0.32, t0);
+  noiseGain.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+  noise.connect(bp).connect(noiseGain).connect(masterGain);
+  noise.start(t0);
+  noise.stop(t0 + dur);
+
+  // ③ 尾音噼啪——几颗细碎的火星
+  const sparks = 4 + Math.floor(Math.random() * 4);
+  for (let i = 0; i < sparks; i++){
+    const st = t0 + 0.08 + Math.random() * 0.5;
+    const sOsc = ctx.createOscillator();
+    const sGain = ctx.createGain();
+    sOsc.type = 'triangle';
+    sOsc.frequency.setValueAtTime(900 + Math.random() * 2200, st);
+    sGain.gain.setValueAtTime(0.0001, st);
+    sGain.gain.exponentialRampToValueAtTime(0.06 + Math.random() * 0.05, st + 0.005);
+    sGain.gain.exponentialRampToValueAtTime(0.0001, st + 0.09);
+    sOsc.connect(sGain).connect(masterGain);
+    sOsc.start(st);
+    sOsc.stop(st + 0.1);
+  }
+}
+
+/* ---------- 猫叫：基频先上扬再滑落 + 颤音 ---------- */
+function playMeow(){
+  if (!soundOn) return;
+  const ctx = ensureAudio();
+  if (!ctx || !masterGain) return;
+
+  const t0 = ctx.currentTime;
+  const base = 470 + Math.random() * 170;   // 每只猫、每一声都不一样
+
+  const osc = ctx.createOscillator();
+  osc.type = 'sawtooth';
+  osc.frequency.setValueAtTime(base, t0);
+  osc.frequency.linearRampToValueAtTime(base * 1.85, t0 + 0.13);
+  osc.frequency.linearRampToValueAtTime(base * 1.2, t0 + 0.34);
+  osc.frequency.linearRampToValueAtTime(base * 0.7, t0 + 0.62);
+
+  // 颤音，让“喵”带点抖动
+  const vib = ctx.createOscillator();
+  const vibGain = ctx.createGain();
+  vib.frequency.value = 6 + Math.random() * 4;
+  vibGain.gain.value = base * 0.07;
+  vib.connect(vibGain);
+  vibGain.connect(osc.frequency);
+
+  // 两个滤波器模拟口腔共鸣
+  const bp = ctx.createBiquadFilter();
+  bp.type = 'bandpass';
+  bp.frequency.setValueAtTime(900, t0);
+  bp.frequency.linearRampToValueAtTime(1700, t0 + 0.2);
+  bp.frequency.linearRampToValueAtTime(820, t0 + 0.6);
+  bp.Q.value = 2.4;
+
+  const lp = ctx.createBiquadFilter();
+  lp.type = 'lowpass';
+  lp.frequency.value = 3200;
+
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(0.0001, t0);
+  g.gain.exponentialRampToValueAtTime(0.22, t0 + 0.06);
+  g.gain.exponentialRampToValueAtTime(0.11, t0 + 0.36);
+  g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.72);
+
+  osc.connect(bp).connect(lp).connect(g).connect(masterGain);
+  osc.start(t0);
+  osc.stop(t0 + 0.75);
+  vib.start(t0);
+  vib.stop(t0 + 0.75);
+}
+
+/* ---------- 玻璃碎裂：只有在点碎漂流瓶时响 ---------- */
+function playBottleBreak(){
+  if (!soundOn) return;
+  const ctx = ensureAudio();
+  if (!ctx || !masterGain) return;
+
+  const t0 = ctx.currentTime;
+
+  // ① 碎裂主体：高通白噪声，短促收尾
+  const dur = 0.42;
+  const len = Math.max(1, Math.floor(ctx.sampleRate * dur));
+  const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+  const data = buf.getChannelData(0);
+  for (let i = 0; i < len; i++){
+    const k = Math.pow(1 - i / len, 2.6);
+    data[i] = (Math.random() * 2 - 1) * k;
+  }
+  const src = ctx.createBufferSource();
+  src.buffer = buf;
+  const hp = ctx.createBiquadFilter();
+  hp.type = 'highpass';
+  hp.frequency.setValueAtTime(2400, t0);
+  hp.frequency.exponentialRampToValueAtTime(1200, t0 + dur);
+  const ng = ctx.createGain();
+  ng.gain.setValueAtTime(0.30, t0);
+  ng.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+  src.connect(hp).connect(ng).connect(masterGain);
+  src.start(t0);
+  src.stop(t0 + dur);
+
+  // ② 玻璃碎片叮当：几颗随机高频正弦，错开几十毫秒
+  const shards = 6 + Math.floor(Math.random() * 5);
+  for (let i = 0; i < shards; i++){
+    const t = t0 + 0.02 + Math.random() * 0.3;
+    const o = ctx.createOscillator();
+    const og = ctx.createGain();
+    o.type = 'sine';
+    o.frequency.setValueAtTime(2300 + Math.random() * 4000, t);
+    o.frequency.exponentialRampToValueAtTime(1800 + Math.random() * 2600, t + 0.12);
+    og.gain.setValueAtTime(0.0001, t);
+    og.gain.exponentialRampToValueAtTime(0.045 + Math.random() * 0.05, t + 0.004);
+    og.gain.exponentialRampToValueAtTime(0.0001, t + 0.1 + Math.random() * 0.14);
+    o.connect(og).connect(masterGain);
+    o.start(t);
+    o.stop(t + 0.3);
+  }
+}
+
+document.body.addEventListener('click',(e)=>{
+  if(e.target.closest('.stage') || e.target.closest('.bottle-btn') || e.target.closest('.msg-mask') || e.target.closest('.read-mask') || e.target.closest('.sound-btn') || e.target.closest('.cat')) return;
+  boom(e.clientX,e.clientY);   // 只放视觉烟花，不出声
+})
+
+// 左下角音效开关（记住选择）
+const soundBtn = document.getElementById('soundBtn');
+function refreshSoundBtn(){
+  if (!soundBtn) return;
+  soundBtn.textContent = soundOn ? '🔊' : '🔇';
+  soundBtn.classList.toggle('off', !soundOn);
+  soundBtn.title = soundOn ? '点击关闭音效' : '点击开启音效';
+}
+refreshSoundBtn();
+
+if (soundBtn) {
+  soundBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    soundOn = !soundOn;
+    try { localStorage.setItem('firework_sound_off', soundOn ? '0' : '1'); } catch (err) {}
+    refreshSoundBtn();
+    if (soundOn) playMeow();   // 开启时放一声试听
+  });
+}
+
+const stage = document.getElementById("stage");
+const card = document.getElementById("card");
+const tip = document.getElementById("tip");
+const cardText = card.querySelector('.card-text');
+const cardImg = document.getElementById('cardImg');
+const closeCard = document.getElementById('closeCard');
+let showPic = false;
+let flipTimer = null;
+
+function openEnvelope(){
+  stage.classList.add("open");
+  tip.textContent = "点击卡片切换照片/文字 · 右上角可以合上";
+}
+
+function closeEnvelope(){
+  stage.classList.remove("open");
+  card.classList.remove("photo-mode");
+  card.classList.remove("flip-anim");
+  showPic = false;
+  card.scrollTop = 0;
+  tip.textContent = "点击信封打开";
+}
+
+function replayFlip(){
+  card.classList.remove("flip-anim");
+  // 强制浏览器重排，这样连续点击也能重新播放动画
+  void card.offsetWidth;
+  card.classList.add("flip-anim");
+  clearTimeout(flipTimer);
+  flipTimer = setTimeout(() => card.classList.remove("flip-anim"), 520);
+}
+
+stage.addEventListener("click", (e) => {
+  if (card.contains(e.target)) return;
+  if (e.target.closest && e.target.closest('.close-btn')) return;
+  if (stage.classList.contains("open")) closeEnvelope();
+  else openEnvelope();
+});
+
+card.addEventListener("click", () => {
+  if (!stage.classList.contains("open")) return;
+  showPic = !showPic;
+  card.classList.toggle('photo-mode', showPic);
+  replayFlip();
+  tip.textContent = showPic ? "点击照片回到文字" : "点击卡片切换照片/文字";
+});
+
+if (closeCard) {
+  closeCard.addEventListener("click", (e) => {
+    e.stopPropagation();
+    closeEnvelope();
+  });
+}
+
+// 图片加载失败时给出提示，而不是白屏
+if (cardImg) {
+  cardImg.addEventListener('error', () => {
+    const msg = document.createElement('p');
+    msg.className = 'img-fallback';
+    msg.textContent = '照片没加载出来：请确认 photo.jpg 和 index.html 在同一个文件夹里。';
+    cardImg.replaceWith(msg);
+  });
+}
+
+// 漂流瓶：预置的写在下面 PRESET_BOTTLES 里，自己写的存在本机 localStorage
+const openBottleBtn = document.getElementById('openBottleBtn');
+const writeMask = document.getElementById('writeMask');
+const msgInput = document.getElementById('msgInput');
+const cancelWrite = document.getElementById('cancelWrite');
+const sendMsg = document.getElementById('sendMsg');
+const readMask = document.getElementById('readMask');
+const readText = document.getElementById('readText');
+const closeRead = document.getElementById('closeRead');
+
+/* ==========================================================
+   漂流瓶
+   PRESET_BOTTLES 里的每一句 = 一个瓶子，任何人打开页面都能看到。
+   改这里的内容 → 重新上传 index.html → 她刷新就能看到新版。
+   自己在页面上写的瓶子只存在本机浏览器里，别人看不到。
+   ========================================================== */
+const PRESET_BOTTLES = [
+  "其实我一直记得你说过的那些小事，只是当年没机会开口。",
+  "以后要是还想聊那些没意义的日常，我随时都在。",
+  "生日快乐，愿你今年遇到的都是温柔的人。"
+];
+
+// 预置瓶子的落点（避开中间的卡片），想换位置改这里
+const PRESET_POS = [
+  { left: 7,  top: 12 },
+  { left: 80, top: 15 },
+  { left: 8,  top: 76 },
+  { left: 79, top: 74 },
+  { left: 5,  top: 44 },
+  { left: 84, top: 46 }
+];
+
+const STORE_KEY = 'huixian_bottles_v1';
+let bottleArr = [];
+try {
+  const saved = JSON.parse(localStorage.getItem(STORE_KEY) || '[]');
+  if (Array.isArray(saved)) bottleArr = saved;
+} catch (e) { bottleArr = []; }
+
+openBottleBtn.onclick = ()=> writeMask.classList.add('show');
+cancelWrite.onclick = ()=> {writeMask.classList.remove('show');msgInput.value='';}
+closeRead.onclick = ()=> readMask.classList.remove('show');
+readMask.onclick = (e)=>{if(e.target===readMask) readMask.classList.remove('show');}
+
+function renderBottle(txt, pos, isPreset){
+  const b = document.createElement('div');
+  b.className = 'float-bottle';
+  b.title = '点开我';
+  b.innerHTML = '<svg viewBox="0 0 54 70"><path fill="#87CEEB" d="M22 8 h10 v6 l8 4 v32 c0 6 -13 10 -20 4 l-6 -4 v-32 l8 -4 z"/><ellipse cx="27" cy="8" rx="5" ry="3" fill="#666"/></svg>';
+  if (pos) {
+    b.style.left = pos.left + '%';
+    b.style.top = pos.top + '%';
+    b.style.animationDelay = (Math.random() * 4).toFixed(2) + 's';
+  } else {
+    // 自己写的瓶子：随机落在上沿或下沿，尽量不压住中间的信封
+    b.style.left = (8 + Math.random() * 78) + '%';
+    b.style.top = (Math.random() < 0.5
+      ? 8 + Math.random() * 18
+      : 72 + Math.random() * 16) + '%';
+  }
+  b.onclick = ()=>{
+    readText.innerText = txt;
+    readMask.classList.add('show');
+    // 读完就放走：瓶子缩小淡出，然后从页面移除
+    b.classList.add('gone');
+    playBottleBreak();
+    setTimeout(() => b.remove(), 300);
+    if (!isPreset) removeStoredBottle(txt);
+  };
+  document.body.appendChild(b);
+}
+
+// 从本机存档里删掉（自己写的瓶子点开后就不该再出现）
+function removeStoredBottle(txt){
+  const i = bottleArr.indexOf(txt);
+  if (i > -1){
+    bottleArr.splice(i, 1);
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(bottleArr)); } catch (e) {}
+  }
+}
+
+// 先把预置的瓶子摆出来（一进页面就有）
+PRESET_BOTTLES.forEach((t, i) => renderBottle(t, PRESET_POS[i % PRESET_POS.length], true));
+// 再补上本机之前写过、还没点开的
+bottleArr.forEach(t => renderBottle(t, null, false));
+
+sendMsg.onclick = ()=>{
+  const val = msgInput.value.trim();
+  if(!val) return;
+  bottleArr.push(val);
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(bottleArr)); } catch (e) {}
+  renderBottle(val, null, false);
+  writeMask.classList.remove('show');
+  msgInput.value='';
+}
+
+/* ==========================================================
+   互动小猫：默认一直在走，随机被「坐下 / 躺下 / 睡觉 / 喵一声」打断，
+   打断结束自动继续走；点它会停下来叫一声，然后接着走
+   ========================================================== */
+(function(){
+  const cat = document.getElementById('cat');
+  const bubble = document.getElementById('catBubble');
+  if (!cat) return;
+
+  let meowTimer = null;
+  let walkTimer = null;
+  let actionTimer = null;
+  let breakTimer = null;
+  let walking = false;
+  let catX = cat.offsetLeft || 16;
+
+  function clearState(){
+    cat.classList.remove('sleep');
+    cat.classList.remove('meow');
+    if (bubble) bubble.classList.remove('show');
+  }
+
+  function setPose(pose){
+    cat.classList.toggle('lie', pose === 'lie');
+  }
+
+  function sayMeow(){
+    clearTimeout(meowTimer);
+    cat.classList.add('meow');
+    if (bubble){
+      const words = ['喵～', '喵呜～', '喵？', '咪～'];
+      bubble.textContent = words[Math.floor(Math.random() * words.length)];
+      bubble.classList.add('show');
+    }
+    playMeow();
+    meowTimer = setTimeout(() => {
+      cat.classList.remove('meow');
+      if (bubble) bubble.classList.remove('show');
+    }, 1200);
+  }
+
+  // 把当前位置钉住，别让它跳回起点
+  function freezeAt(){
+    const x = cat.getBoundingClientRect().left;
+    cat.style.transition = 'none';
+    cat.style.left = x + 'px';
+    void cat.offsetWidth;
+    cat.style.transition = '';
+    catX = x;
+  }
+
+  // 走一步：走到就继续走下一步，不会自己停下
+  function walkStep(){
+    if (!walking) return;
+    cat.classList.add('walk');
+
+    const w = cat.offsetWidth || 104;
+    const maxX = Math.max(16, window.innerWidth - w - 16);
+    let target = 16 + Math.random() * (maxX - 16);
+
+    // 目标太近就干脆走到另一头
+    if (Math.abs(target - catX) < 120){
+      target = (catX > (maxX + 16) / 2) ? 16 : maxX;
+    }
+
+    const dist = Math.abs(target - catX);
+    const dur = Math.min(9000, Math.max(1200, dist * 11));
+
+    cat.classList.toggle('facing-left', target < catX);
+    cat.style.transition = 'left ' + Math.round(dur) + 'ms linear';
+    cat.style.left = Math.round(target) + 'px';
+    catX = target;
+
+    clearTimeout(walkTimer);
+    walkTimer = setTimeout(() => {
+      if (walking) walkStep();
+    }, dur + 180);
+  }
+
+  function pauseWalk(){
+    walking = false;
+    clearTimeout(walkTimer);
+    if (cat.classList.contains('walk')) freezeAt();
+    cat.classList.remove('walk');
+  }
+
+  function resumeWalk(){
+    clearTimeout(actionTimer);
+    clearState();
+    cat.classList.remove('lie');
+    if (walking) return;
+    walking = true;
+    walkStep();
+  }
+
+  // 随机来个别的动作，打断走路；做完自动继续走
+  function doBreak(){
+    if (!walking) return;
+    pauseWalk();
+
+    const r = Math.random();
+    let hold;
+    if (r < 0.28){                                    // 坐下
+      setPose('sit');
+      hold = 2600 + Math.random() * 1800;
+    } else if (r < 0.52){                             // 躺下
+      setPose('lie');
+      hold = 3200 + Math.random() * 2200;
+    } else if (r < 0.72){                             // 睡觉
+      setPose('lie');
+      cat.classList.add('sleep');
+      hold = 4500 + Math.random() * 3000;
+    } else {                                          // 坐着喵一声
+      setPose('sit');
+      sayMeow();
+      hold = 1600 + Math.random() * 800;
+    }
+
+    actionTimer = setTimeout(resumeWalk, hold);
+  }
+
+  function scheduleBreak(){
+    clearTimeout(breakTimer);
+    breakTimer = setTimeout(() => {
+      doBreak();
+      scheduleBreak();
+    }, 3200 + Math.random() * 3800);
+  }
+
+  // 点它：停下来叫一声，然后继续走
+  cat.addEventListener('click', (e) => {
+    e.stopPropagation();
+    clearTimeout(actionTimer);
+    pauseWalk();
+    clearState();
+    setPose('sit');
+    sayMeow();
+    actionTimer = setTimeout(resumeWalk, 1600);
+  });
+
+  // 窗口变窄时把猫拉回可视范围
+  window.addEventListener('resize', () => {
+    const w = cat.offsetWidth || 104;
+    const maxX = Math.max(16, window.innerWidth - w - 16);
+    if (catX > maxX){
+      catX = maxX;
+      cat.style.left = maxX + 'px';
+    }
+  });
+
+  // 一进页面就开始走
+  walking = true;
+  walkStep();
+  scheduleBreak();
+})();
+</script>
+</body>
+</html>
