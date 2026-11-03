@@ -328,10 +328,17 @@
     width:104px;
     height:114px;
     z-index:5;
-    cursor:pointer;
+    cursor:grab;
+    touch-action:none;
     -webkit-tap-highlight-color:transparent;
     user-select:none;
   }
+  .cat.dragging{
+    cursor:grabbing;
+    z-index:30;
+    filter:drop-shadow(0 10px 14px rgba(90,40,70,.28));
+  }
+  .cat, .cat *{ touch-action:none; }
   .cat-pose{
     position:absolute;
     inset:0;
@@ -406,7 +413,7 @@
     0%, 100%{ transform:rotate(-7deg); }
     50%{ transform:rotate(9deg); }
   }
-  .cat:active .cat-pose{ transform:translateY(2px) scale(.97); }
+  .cat:not(.dragging):active .cat-pose{ transform:translateY(2px) scale(.97); }
 
   /* 走路姿态 */
   .cat-walk{
@@ -1570,16 +1577,82 @@ sendMsg.onclick = ()=>{
     }, 3200 + Math.random() * 3800);
   }
 
-  // 点它：停下来叫一声，然后继续走
-  cat.addEventListener('click', (e) => {
-    e.stopPropagation();
-    clearTimeout(actionTimer);
+  // ---- 拖动 & 轻触 ----
+  let dragging = false;
+  let dragMoved = 0;
+  let dragStartX = 0, dragStartY = 0;
+  let dragLeft = 0, dragTop = 0;
+
+  cat.addEventListener('pointerdown', (e) => {
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+
     pauseWalk();
+    clearTimeout(actionTimer);
     clearState();
-    setPose('sit');
-    sayMeow();
-    actionTimer = setTimeout(resumeWalk, 1600);
+
+    const r = cat.getBoundingClientRect();
+    dragging = true;
+    dragMoved = 0;
+    dragStartX = e.clientX;
+    dragStartY = e.clientY;
+    dragLeft = r.left;
+    dragTop = r.top;
+
+    cat.style.transition = 'none';
+    cat.style.bottom = 'auto';
+    cat.style.left = r.left + 'px';
+    cat.style.top = r.top + 'px';
+    cat.classList.add('dragging');
+
+    if (cat.setPointerCapture) {
+      try { cat.setPointerCapture(e.pointerId); } catch (err) {}
+    }
+    e.preventDefault();
   });
+
+  cat.addEventListener('pointermove', (e) => {
+    if (!dragging) return;
+
+    const dx = e.clientX - dragStartX;
+    const dy = e.clientY - dragStartY;
+    dragMoved = Math.max(dragMoved, Math.abs(dx) + Math.abs(dy));
+
+    const w = cat.offsetWidth || 104;
+    const h = cat.offsetHeight || 114;
+    const maxL = Math.max(0, window.innerWidth - w);
+    const maxT = Math.max(0, window.innerHeight - h);
+
+    const nx = Math.min(Math.max(dragLeft + dx, 0), maxL);
+    const ny = Math.min(Math.max(dragTop + dy, 0), maxT);
+
+    cat.style.left = nx + 'px';
+    cat.style.top = ny + 'px';
+    catX = nx;
+
+    e.preventDefault();
+  });
+
+  function endDrag(e){
+    if (!dragging) return;
+    dragging = false;
+    cat.classList.remove('dragging');
+    try { cat.releasePointerCapture(e.pointerId); } catch (err) {}
+
+    if (dragMoved > 8){
+      // 拖完了：就在新位置继续溜达
+      resumeWalk();
+    } else {
+      // 只是轻轻摸了一下
+      pauseWalk();
+      clearState();
+      setPose('sit');
+      sayMeow();
+      actionTimer = setTimeout(resumeWalk, 1600);
+    }
+  }
+
+  cat.addEventListener('pointerup', endDrag);
+  cat.addEventListener('pointercancel', endDrag);
 
   // 窗口变窄时把猫拉回可视范围
   window.addEventListener('resize', () => {
