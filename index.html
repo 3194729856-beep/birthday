@@ -49,6 +49,13 @@
     z-index: 40;
     pointer-events: none;
   }
+  /* 信封页的互动光尘：浮在信纸之上，跟着指针走 */
+  #moteCanvas {
+    position: fixed;
+    inset: 0;
+    z-index: 4;
+    pointer-events: none;
+  }
   .bunny {
     position: absolute;
     z-index: 2;
@@ -88,6 +95,138 @@
   .bunny.b2 { top: 18%; right: 10%; animation-delay: .55s; }
   .bunny.b3 { bottom: 24%; left: 6%; animation-delay: 1.1s; }
   .bunny.b4 { bottom: 10%; right: 8%; animation-delay: 1.65s; }
+  /* 四只都在最上层，保证每只都点得到、扔得出礼物 */
+  .bunny {
+    pointer-events: auto;
+    cursor: pointer;
+    z-index: 6;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* ---- 点 Kitty 扔出来的红色礼物盒 ---- */
+  .gift {
+    position: fixed;
+    width: 30px;
+    height: 26px;
+    margin: -13px 0 0 -15px;
+    z-index: 60;
+    pointer-events: none;
+    border-radius: 4px;
+    background: linear-gradient(158deg, #ff5468 0%, #d61233 55%, #9d0a24 100%);
+    box-shadow:
+      0 6px 14px rgba(150, 20, 40, .38),
+      inset 0 1px 0 rgba(255, 255, 255, .45);
+    animation: giftThrow 1.25s cubic-bezier(.2, .7, .3, 1) forwards;
+  }
+  .gift::before {
+    content: "";
+    position: absolute;
+    left: 50%; top: 0;
+    width: 7px; height: 100%;
+    margin-left: -3.5px;
+    background: linear-gradient(180deg, #ffe9a8, #f0b429 60%, #c98f14);
+  }
+  .gift::after {
+    content: "";
+    position: absolute;
+    left: 0; top: 50%;
+    width: 100%; height: 7px;
+    margin-top: -3.5px;
+    background: linear-gradient(90deg, #ffe9a8, #f0b429 60%, #c98f14);
+  }
+  .gift .bow {
+    position: absolute;
+    left: 50%; top: -9px;
+    width: 22px; height: 13px;
+    margin-left: -11px;
+    background:
+      radial-gradient(circle at 27% 55%, #ff7d8d 0 46%, transparent 47%),
+      radial-gradient(circle at 73% 55%, #ff7d8d 0 46%, transparent 47%);
+    filter: drop-shadow(0 1px 1px rgba(140, 15, 35, .4));
+  }
+  @keyframes giftThrow {
+    0%   { transform: translate(0, 0) rotate(0deg) scale(.35); opacity: 0; }
+    12%  { transform: translate(calc(var(--dx) * .12), -30px) rotate(45deg) scale(1); opacity: 1; }
+    45%  { transform: translate(calc(var(--dx) * .55), -130px) rotate(230deg) scale(1.06); opacity: 1; }
+    78%  { transform: translate(calc(var(--dx) * .92), calc(var(--dy, 62px) * .3)) rotate(360deg) scale(.95); opacity: 1; }
+    96%  { transform: translate(var(--dx), calc(var(--dy, 62px) * .94)) rotate(400deg) scale(1.05); opacity: 1; }
+    100% { transform: translate(var(--dx), var(--dy, 62px)) rotate(405deg) scale(1); opacity: 1; }
+  }
+  /* 落地后可以点开 */
+  .gift.landed { pointer-events: auto; cursor: pointer; }
+  .gift.opening { animation: giftOpen .3s ease forwards; }
+  .gift.gone { animation: giftGone .45s ease forwards; }
+  @keyframes giftOpen {
+    0%   { transform: translate(var(--dx), var(--dy, 62px)) rotate(405deg) scale(1); opacity: 1; }
+    100% { transform: translate(var(--dx), calc(var(--dy, 62px) - 12px)) rotate(450deg) scale(1.5); opacity: 0; }
+  }
+  @keyframes giftGone {
+    0%   { opacity: 1; }
+    100% { opacity: 0; }
+  }
+
+  /* ---- 礼花飘带：彩色长条纸带，边扭边飘下来 ---- */
+  .ribbon {
+    position: fixed;
+    width: var(--w, 9px);
+    height: var(--h, 44px);
+    z-index: 58;
+    pointer-events: none;
+    opacity: 0;
+    border-radius: 4px;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, .55) 0%, rgba(255, 255, 255, 0) 45%),
+      var(--c, #ff5b93);
+    box-shadow: 0 1px 5px rgba(90, 20, 60, .22);
+    animation: ribbonFall var(--dur, 5.5s) linear var(--delay, 0s) forwards;
+    will-change: transform;
+  }
+  /* scaleX 在 1 和 .3 之间来回 = 纸带翻面扭转；前 8% 向四周炸开 */
+  @keyframes ribbonFall {
+    0%   { transform: translate(0, 0) rotate(0deg) scaleX(1) scale(.45); opacity: 0; }
+    2%   { opacity: 1; }
+    8%   { transform: translate(var(--bx), var(--by)) rotate(calc(var(--rot) * .12)) scaleX(.45) scale(1.06); }
+    36%  { transform: translate(calc(var(--bx) * 1.04), calc(var(--by) * .25 + var(--fall) * .24)) rotate(calc(var(--rot) * .4)) scaleX(1); }
+    60%  { transform: translate(calc(var(--bx) * 1.08 + var(--ddx) * .5), calc(var(--fall) * .58)) rotate(calc(var(--rot) * .66)) scaleX(.32); }
+    82%  { transform: translate(calc(var(--bx) * 1.1 + var(--ddx) * .82), calc(var(--fall) * .82)) rotate(calc(var(--rot) * .86)) scaleX(1); }
+    100% { transform: translate(calc(var(--bx) * 1.1 + var(--ddx)), var(--fall)) rotate(var(--rot)) scaleX(.6); opacity: 0; }
+  }
+
+  /* 炸开瞬间：白光 + 冲击环 */
+  .burst-flash {
+    position: fixed;
+    width: 64px;
+    height: 64px;
+    margin: -32px 0 0 -32px;
+    border-radius: 50%;
+    z-index: 59;
+    pointer-events: none;
+    background: radial-gradient(circle,
+      rgba(255, 255, 255, .98) 0%,
+      rgba(255, 226, 244, .7) 32%,
+      rgba(255, 180, 220, 0) 72%);
+    animation: burstFlash .55s ease-out forwards;
+  }
+  @keyframes burstFlash {
+    0%   { transform: scale(.3); opacity: 0; }
+    16%  { transform: scale(1.15); opacity: 1; }
+    100% { transform: scale(2.7); opacity: 0; }
+  }
+  .burst-ring {
+    position: fixed;
+    width: 70px;
+    height: 70px;
+    margin: -35px 0 0 -35px;
+    border-radius: 50%;
+    border: 3px solid rgba(255, 236, 246, .95);
+    z-index: 59;
+    pointer-events: none;
+    animation: burstRing .58s cubic-bezier(.15, .7, .3, 1) forwards;
+  }
+  @keyframes burstRing {
+    0%   { transform: scale(.2); opacity: .95; border-width: 5px; }
+    100% { transform: scale(3.6); opacity: 0; border-width: 1px; }
+  }
   @keyframes kittyDance {
     0%, 100% { transform: translateY(0) rotate(-4deg); }
     30%      { transform: translateY(-14px) rotate(4deg); }
@@ -108,6 +247,27 @@
     height: min(480px, 58vh);
     perspective: 1600px;
     cursor: default;
+  }
+  /* 拖动倾斜的整体：信封 + 所有信纸一起转 */
+  .tilt {
+    position: absolute;
+    inset: 0;
+    transform-style: preserve-3d;
+    transition: transform .2s ease-out;
+    will-change: transform;
+    -webkit-user-select: none;
+            user-select: none;
+  }
+  /* 用力甩一下：整圈翻过去再回到正面 */
+  .tilt.spin-right { animation: spinRight .95s cubic-bezier(.22, .68, .24, 1) both; }
+  .tilt.spin-left  { animation: spinLeft  .95s cubic-bezier(.22, .68, .24, 1) both; }
+  @keyframes spinRight {
+    from { transform: rotateX(var(--sx, 0deg)) rotateY(var(--sy, 0deg)); }
+    to   { transform: rotateX(0deg) rotateY(360deg); }
+  }
+  @keyframes spinLeft {
+    from { transform: rotateX(var(--sx, 0deg)) rotateY(var(--sy, 0deg)); }
+    to   { transform: rotateX(0deg) rotateY(-360deg); }
   }
   /* 信封背后的柔光 */
   .stage::before {
@@ -180,6 +340,32 @@
     15%  { opacity: 1; }
     70%  { opacity: 1; }
     100% { transform: translateX(340%) rotate(16deg); opacity: 0; }
+  }
+  /* ---- 苹果发布会式入场：从虚焦里浮出来，落定后停住 ---- */
+  .stage.reveal .envelope {
+    animation: envReveal 1.6s cubic-bezier(.16, .9, .24, 1) both;
+  }
+  /* 入场时先不露纸，等信封落定再一起出现 */
+  .stage.reveal .sheets {
+    animation: sheetsIn 1.6s cubic-bezier(.16, .9, .24, 1) both;
+  }
+  @keyframes sheetsIn {
+    0%, 55% { opacity: 0; }
+    100%    { opacity: 1; }
+  }
+  @keyframes envReveal {
+    0%   { opacity: 0; transform: translateY(56px) scale(.66) rotateX(40deg); filter: blur(18px); }
+    55%  { opacity: 1; transform: translateY(-7px) scale(1.05) rotateX(0deg); filter: blur(0); }
+    78%  { transform: translateY(4px) scale(.99) rotateX(0deg); }
+    100% { opacity: 1; transform: translateY(0) scale(1) rotateX(0deg); filter: blur(0); }
+  }
+  .stage.reveal::before {
+    animation: glowBurst 1.6s cubic-bezier(.16, .9, .24, 1);
+  }
+  @keyframes glowBurst {
+    0%   { transform: scale(.55); opacity: .18; }
+    45%  { transform: scale(1.2);  opacity: 1; }
+    100% { transform: scale(1);    opacity: .72; }
   }
   /* 下摆折角：改成一团柔光，不留硬边 */
   .env-fold {
@@ -273,7 +459,8 @@
     flex-direction: column;
     overflow: hidden;
     will-change: transform;
-    z-index: calc(9 - var(--i));
+    /* 必须全部低于信封的 z-index:10，抽出来的那张用 .out 覆盖成 30 */
+    z-index: calc(9 - var(--i) * 0.6);
   }
   .sheet.out {
     transform: translateY(-72%) rotate(0deg) scale(1.015);
@@ -311,6 +498,12 @@
     color: #9a7a63 !important;
     letter-spacing: .1em;
     margin-top: 4px;
+  }
+  /* 文字较长的信纸：字号收一点，保证一页放得下 */
+  .sheet-long p {
+    font-size: clamp(10.5px, 3vw, 12.5px);
+    line-height: 1.82;
+    letter-spacing: -0.01em;
   }
   .sheet-no {
     margin-top: auto;
@@ -485,7 +678,7 @@
 
   .tip {
     position: absolute;
-    bottom: 28px;
+    bottom: 86px;
     left: 50%;
     transform: translateX(-50%);
     color: rgba(255, 255, 255, .95);
@@ -496,6 +689,468 @@
     z-index: 4;
     opacity: 0.9;
     animation: tip 2.4s ease-in-out infinite;
+  }
+
+  /* ---- 我的世界方块按钮 ---- */
+  .mc-btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 10px 20px;
+    font-family: "Courier New", Consolas, monospace;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: .16em;
+    text-indent: .16em;
+    color: #fff7fb;
+    background: #e0568f;
+    border: 3px solid #8b2b56;
+    border-radius: 0;
+    cursor: pointer;
+    box-shadow:
+      inset 3px 3px 0 rgba(255, 255, 255, .45),
+      inset -3px -3px 0 rgba(0, 0, 0, .3),
+      0 5px 0 #8b2b56,
+      0 10px 18px rgba(80, 10, 40, .3);
+    transition: transform .07s linear, box-shadow .07s linear, filter .2s ease;
+    -webkit-user-select: none;
+            user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .mc-btn:hover { filter: brightness(1.07); }
+  .mc-btn:active {
+    transform: translateY(4px);
+    box-shadow:
+      inset 3px 3px 0 rgba(255, 255, 255, .32),
+      inset -3px -3px 0 rgba(0, 0, 0, .3),
+      0 1px 0 #8b2b56,
+      0 4px 8px rgba(80, 10, 40, .28);
+  }
+  .mc-cube {
+    width: 13px;
+    height: 13px;
+    margin-right: 9px;
+    background: #ffd166;
+    box-shadow:
+      inset 2px 2px 0 rgba(255, 255, 255, .8),
+      inset -2px -2px 0 rgba(150, 90, 0, .6);
+  }
+  .mc-next {
+    position: fixed;
+    left: 50%;
+    bottom: 24px;
+    transform: translateX(-50%);
+    z-index: 8;
+  }
+  .mc-next:active { transform: translateX(-50%) translateY(4px); }
+
+  /* ---- 第二页 ---- */
+  .page2 {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background:
+      radial-gradient(120% 80% at 50% 16%, rgba(255, 160, 210, .38) 0%, rgba(255, 120, 180, 0) 62%),
+      linear-gradient(165deg, #2b0a1c 0%, #591843 46%, #1a0613 100%);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .55s ease;
+  }
+  .page2.show { opacity: 1; pointer-events: auto; }
+  .p2-inner {
+    text-align: center;
+    opacity: 0;
+    transform: translateY(20px) scale(.96);
+    transition: transform .7s cubic-bezier(.16, .9, .24, 1), opacity .6s ease;
+  }
+  .page2.show .p2-inner { opacity: 1; transform: none; }
+  .p2-kicker {
+    font-size: 10px;
+    letter-spacing: .42em;
+    text-indent: .42em;
+    color: rgba(255, 200, 225, .78);
+    margin-bottom: 18px;
+  }
+  .p2-title {
+    font-size: clamp(30px, 9vw, 52px);
+    font-weight: 800;
+    letter-spacing: .12em;
+    color: #fff6fb;
+    text-shadow:
+      0 0 18px rgba(255, 130, 190, .75),
+      0 0 46px rgba(255, 90, 160, .45);
+    margin-bottom: 20px;
+    transition: filter .4s ease;
+  }
+  /* 切开蛋糕之后：像素流光扫过标题 */
+  .p2-title.glowing {
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+    background-image: linear-gradient(100deg,
+      #ff9ec7 0%,   #ff9ec7 28%,
+      #ffd7ea 34%,  #ffffff 40%,
+      #ffe9a8 46%,  #ffd7ea 52%,
+      #ff9ec7 58%,  #ff9ec7 100%);
+    background-size: 240% 100%;
+    background-repeat: no-repeat;
+    -webkit-background-clip: text;
+            background-clip: text;
+    animation: pixelFlow 2.8s steps(20) infinite;
+    text-shadow:
+      0 0 16px rgba(255, 150, 200, .75),
+      0 0 36px rgba(255, 90, 160, .45);
+  }
+  @keyframes pixelFlow {
+    0%   { background-position: 220% 0; }
+    100% { background-position: -60% 0; }
+  }
+  .p2-sub {
+    font-size: 13px;
+    line-height: 2.05;
+    letter-spacing: .12em;
+    color: rgba(255, 222, 240, .84);
+    margin-bottom: 36px;
+  }
+
+  /* ---- 像素网格背景 ---- */
+  .p2-grid {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image:
+      linear-gradient(rgba(255, 255, 255, .045) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, .045) 1px, transparent 1px);
+    background-size: 26px 26px;
+    -webkit-mask-image: radial-gradient(circle at 50% 42%, #000 0%, transparent 76%);
+            mask-image: radial-gradient(circle at 50% 42%, #000 0%, transparent 76%);
+  }
+
+  .cake-stage {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 250px;
+    margin-bottom: 28px;
+  }
+
+  /* 点我点我：一直轻轻弹跳 */
+  .p2-tap {
+    animation: tapPulse 1.5s ease-in-out infinite;
+  }
+  @keyframes tapPulse {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50%      { transform: translateY(-5px) scale(1.05); }
+  }
+
+  /* ---- 蛋糕 ---- */
+  .cake-wrap {
+    position: relative;
+    display: inline-block;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .cake-wrap.show {
+    opacity: 1;
+    pointer-events: auto;
+    animation: cakePop .72s cubic-bezier(.2, 1.35, .4, 1) both;
+  }
+  @keyframes cakePop {
+    0%   { transform: scale(.4) translateY(48px); opacity: 0; }
+    60%  { transform: scale(1.07) translateY(0); opacity: 1; }
+    100% { transform: scale(1) translateY(0); opacity: 1; }
+  }
+  .cake svg {
+    display: block;
+    width: min(72vw, 300px);
+    height: auto;
+    filter: drop-shadow(0 16px 26px rgba(120, 20, 60, .45));
+  }
+
+  /* ---- 蛋糕右上角的像素问号 ---- */
+  .qmark-wrap {
+    position: absolute;
+    top: -30px;
+    right: -8px;
+    display: flex;
+    flex-direction: row-reverse;
+    align-items: center;
+    gap: 8px;
+    opacity: 0;
+    transform: scale(.6);
+    transition: opacity .3s ease, transform .45s cubic-bezier(.2, 1.6, .4, 1);
+  }
+  .qmark-wrap.show {
+    opacity: 1;
+    transform: scale(1);
+  }
+  .qmark {
+    width: 42px;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f5c542;
+    border: 3px solid #8a6a10;
+    color: #402f00;
+    font: 800 24px/1 "Courier New", Consolas, monospace;
+    box-shadow:
+      inset 3px 3px 0 rgba(255, 255, 255, .55),
+      inset -3px -3px 0 rgba(0, 0, 0, .28),
+      0 4px 0 #8a6a10,
+      0 8px 16px rgba(0, 0, 0, .3);
+    animation: qBob 1.5s ease-in-out infinite;
+  }
+  @keyframes qBob {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-5px); }
+  }
+  .qtext {
+    font-family: "Courier New", Consolas, monospace;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    color: #ffe08a;
+    white-space: nowrap;
+    text-shadow:
+      2px 2px 0 rgba(60, 10, 30, .9),
+      0 0 15px rgba(255, 200, 80, .45);
+  }
+
+  /* ---- 四个带问号的像素方块 ---- */
+  .pk-row {
+    position: absolute;
+    left: 50%;
+    top: 52%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .pk-row.show { opacity: 1; pointer-events: auto; }
+
+  .pk-block {
+    position: relative;
+    width: 58px;
+    height: 58px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #6aa84f;
+    border: 3px solid #3d6b28;
+    border-radius: 0;
+    overflow: hidden;
+    cursor: pointer;
+    box-shadow:
+      inset 3px 3px 0 rgba(255, 255, 255, .42),
+      inset -3px -3px 0 rgba(0, 0, 0, .3),
+      0 4px 0 #3d6b28,
+      0 8px 14px rgba(0, 20, 40, .3);
+    animation: pkPop .38s cubic-bezier(.2, 1.4, .4, 1) both;
+    transition: filter .15s ease;
+  }
+  .pk-tex {
+    position: absolute;
+    inset: 0;
+    display: block;
+  }
+  .pk-tex svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+  .pk-q {
+    position: relative;
+    z-index: 1;
+    font: 800 26px/1 "Courier New", Consolas, monospace;
+    color: #fffdf3;
+    text-shadow:
+      2px 2px 0 rgba(45, 25, 10, .85),
+      -1px -1px 0 rgba(45, 25, 10, .55);
+  }
+  .pk-block:hover { filter: brightness(1.12); }
+  .pk-block:active { transform: translateY(3px); }
+  @keyframes pkPop {
+    0%   { transform: scale(.3) translateY(20px); opacity: 0; }
+    70%  { transform: scale(1.08) translateY(0); opacity: 1; }
+    100% { transform: scale(1) translateY(0); opacity: 1; }
+  }
+  .pk-block.reveal {
+    background: #fff6e5;
+    border-color: #c9a86a;
+    cursor: default;
+    animation: pkReveal .5s cubic-bezier(.2, 1.5, .4, 1) both;
+    box-shadow:
+      inset 3px 3px 0 rgba(255, 255, 255, .9),
+      inset -3px -3px 0 rgba(180, 140, 80, .35),
+      0 4px 0 #c9a86a,
+      0 0 26px rgba(255, 215, 140, .75);
+  }
+  @keyframes pkReveal {
+    0%   { transform: scale(1); }
+    45%  { transform: scale(1.22); }
+    100% { transform: scale(1.1); }
+  }
+  .pk-block.poof {
+    animation: pkPoof .34s ease forwards;
+    pointer-events: none;
+  }
+  @keyframes pkPoof {
+    0%   { transform: scale(1) rotate(0deg); opacity: 1; }
+    55%  { transform: scale(1.14) rotate(9deg); opacity: .85; }
+    100% { transform: scale(0) rotate(22deg); opacity: 0; }
+  }
+  .pk-block svg { width: 40px; height: auto; display: block; }
+  .pk-msg {
+    position: absolute;
+    left: 50%;
+    top: 52%;
+    transform: translate(-50%, -50%) scale(.7);
+    font-family: "Courier New", Consolas, monospace;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: .1em;
+    color: #ffd7e6;
+    text-shadow: 2px 2px 0 rgba(60, 10, 30, .9);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .3s ease, transform .45s cubic-bezier(.2, 1.5, .4, 1);
+  }
+  .pk-msg.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+
+  /* ---- 切开的蛋糕：两半分开 ---- */
+  .halves {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .halves.show { opacity: 1; }
+  .half {
+    width: 50%;
+    transition: transform .85s cubic-bezier(.2, .8, .3, 1);
+    will-change: transform;
+  }
+  .half svg { width: 100%; height: auto; display: block; }
+  .halves.show .half.left  { transform: translateX(-18%) rotate(-6deg); }
+  .halves.show .half.right { transform: translateX(18%) rotate(6deg); }
+
+  /* ---- 可拖动的刀 ---- */
+  .knife-tool {
+    position: fixed;
+    width: 46px;
+    z-index: 72;
+    cursor: grab;
+    touch-action: none;
+    transform-origin: 50% 50%;
+    filter: drop-shadow(0 8px 12px rgba(0, 0, 0, .5));
+    -webkit-user-select: none;
+            user-select: none;
+  }
+  .knife-tool svg { width: 100%; height: auto; display: block; }
+  .knife-tool:active { cursor: grabbing; }
+
+  /* ---- 蜡烛的火焰热区（点燃后才能点） ---- */
+  .candle-hit {
+    position: absolute;
+    left: 41%;
+    top: 0%;
+    width: 22%;
+    height: 24%;
+    padding: 0;
+    border: 0;
+    background: none;
+    opacity: 0;
+    pointer-events: none;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .cake-wrap.lit .candle-hit { opacity: 1; pointer-events: auto; }
+
+  /* ---- 打火机 ---- */
+  .lighter-tool {
+    position: fixed;
+    width: 34px;
+    z-index: 72;
+    cursor: grab;
+    touch-action: none;
+    transform-origin: 50% 50%;
+    filter: drop-shadow(0 6px 10px rgba(0, 0, 0, .45));
+    -webkit-user-select: none;
+            user-select: none;
+  }
+  .lighter-tool svg { width: 100%; height: auto; display: block; }
+  .lighter-tool:active { cursor: grabbing; }
+  .lighter-flame {
+    position: absolute;
+    left: 50%;
+    bottom: 100%;
+    width: 16px;
+    height: 22px;
+    margin-left: -8px;
+    margin-bottom: -3px;
+    opacity: 0;
+    transform-origin: 50% 100%;
+    background: radial-gradient(ellipse at 50% 82%,
+      #fff6cf 0%, #ffd34d 32%, #ff8a2f 62%, rgba(255, 90, 20, 0) 80%);
+    border-radius: 50% 50% 45% 45% / 62% 62% 38% 38%;
+    pointer-events: none;
+    transition: opacity .18s ease;
+  }
+  .lighter-tool.lit .lighter-flame {
+    opacity: 1;
+    animation: flameFlicker .5s ease-in-out infinite alternate;
+  }
+  @keyframes flameFlicker {
+    from { transform: scale(1, 1) translateY(0); opacity: .95; }
+    to   { transform: scale(1.12, .92) translateY(-1px); opacity: 1; }
+  }
+
+  /* ---- 吹灭时的一阵风 ---- */
+  .puff {
+    position: fixed;
+    z-index: 74;
+    pointer-events: none;
+    border-radius: 0;
+    animation: puffFly var(--dur, .8s) cubic-bezier(.2, .7, .4, 1) forwards;
+  }
+  @keyframes puffFly {
+    0%   { transform: translate(-50%, -50%) translate(0, 0) scale(1) rotate(0deg); opacity: 1; }
+    70%  { opacity: .75; }
+    100% { transform: translate(-50%, -50%) translate(var(--px), var(--py)) scale(.35) rotate(110deg); opacity: 0; }
+  }
+
+  .gust {
+    position: fixed;
+    height: 2px;
+    width: 46px;
+    z-index: 74;
+    pointer-events: none;
+    background: linear-gradient(90deg,
+      rgba(255, 255, 255, 0),
+      rgba(255, 255, 255, .85) 45%,
+      rgba(255, 255, 255, 0));
+    animation: gustSweep var(--dur, .45s) ease-out forwards;
+  }
+  @keyframes gustSweep {
+    0%   { transform: translate(-50%, -50%) rotate(var(--gr, 0deg)) translateX(0) scaleX(.25); opacity: 0; }
+    25%  { opacity: 1; }
+    100% { transform: translate(-50%, -50%) rotate(var(--gr, 0deg)) translateX(var(--gx, 40px)) scaleX(1.6); opacity: 0; }
+  }
+
+  .cake.wind { animation: cakeWind .45s ease; }
+  @keyframes cakeWind {
+    0%   { transform: translateX(0) rotate(0deg); }
+    28%  { transform: translateX(-3px) rotate(-.7deg); }
+    58%  { transform: translateX(3px) rotate(.5deg); }
+    100% { transform: translateX(0) rotate(0deg); }
   }
   @keyframes tip {
     0%, 100% { opacity: 0.55; }
@@ -572,11 +1227,17 @@
       inset 0 -3px 8px rgba(255, 150, 190, .3);
     transition:transform .22s ease, box-shadow .22s ease, color .22s ease;
   }
-  .sound-btn svg{ width:21px; height:21px; display:block; }
+  .sound-btn svg{
+    width:22px;
+    height:22px;
+    display:block;
+    transition:filter .22s ease, transform .22s ease;
+  }
   .sound-btn .ico-off{ display:none; }
-  .sound-btn.off{ color:#b08a9b; }
   .sound-btn.off .ico-on{ display:none; }
   .sound-btn.off .ico-off{ display:block; }
+  .sound-btn.off svg{ filter:grayscale(1) opacity(.55); }
+  .sound-btn:hover svg{ transform:scale(1.08); }
   .sound-btn:hover{
     transform:translateY(-2px) scale(1.05);
     box-shadow:
@@ -906,8 +1567,6 @@
       inset 0 2px 10px rgba(255,255,255,.28),
       inset 0 -10px 24px rgba(120, 30, 90, .22),
       0 18px 40px rgba(0, 0, 0, .22);
-    -webkit-backdrop-filter:blur(14px) saturate(1.25);
-            backdrop-filter:blur(14px) saturate(1.25);
     animation:jellyFloat 22s ease-in-out infinite;
     will-change:transform;
   }
@@ -929,13 +1588,13 @@
       linear-gradient(180deg, rgba(255,255,255,.10) 0%, rgba(255,255,255,0) 26%),
       linear-gradient(170deg, rgba(255,190,225,.06) 0%, rgba(20, 4, 16, .42) 100%);
   }
-  /* 水晶凤凰：用蒙版裁出水晶体，整只在页面里飞 */
+  /* 水晶凤凰：整张水晶图在页面里飞 */
   .phoenix{
     position:absolute;
     left:50%;
     top:44%;
     width:min(62vw, 400px);
-    aspect-ratio:460 / 829;
+    height:min(111.7vw, 721px);
     transform:translate(-50%, -50%);
     z-index:3;
     pointer-events:none;
@@ -945,29 +1604,18 @@
   .phoenix-body{
     position:absolute;
     inset:0;
-    -webkit-mask:url(phoenix-mask.png) center / contain no-repeat;
-            mask:url(phoenix-mask.png) center / contain no-repeat;
-    background:
-      linear-gradient(112deg,
-        rgba(255,255,255,.98) 0%,
-        rgba(198,228,255,.9) 18%,
-        rgba(255,208,240,.95) 38%,
-        rgba(255,255,255,1) 50%,
-        rgba(176,214,255,.9) 66%,
-        rgba(255,226,246,.95) 84%,
-        rgba(255,255,255,.98) 100%);
-    background-size:200% 200%;
-    animation:phoenixSheen 8s linear infinite, phoenixFlap 1.5s ease-in-out infinite;
+    background:url(phoenix-crystal.png) center / contain no-repeat;
+    animation:phoenixSheen 8s ease-in-out infinite, phoenixFlap 1.5s ease-in-out infinite;
     transform-origin:50% 58%;
     filter:
-      drop-shadow(0 0 14px rgba(255, 200, 235, .75))
-      drop-shadow(0 0 40px rgba(150, 200, 255, .45));
-    will-change:transform, background-position;
+      drop-shadow(0 0 14px rgba(255, 200, 235, .8))
+      drop-shadow(0 0 44px rgba(150, 200, 255, .5));
+    will-change:transform, filter;
   }
-  /* 光在晶体里流动 */
+  /* 整体明暗呼吸，像光在晶体里走 */
   @keyframes phoenixSheen{
-    0%   { background-position:0% 50%; }
-    100% { background-position:200% 50%; }
+    0%, 100% { filter:brightness(1) drop-shadow(0 0 14px rgba(255,200,235,.8)) drop-shadow(0 0 44px rgba(150,200,255,.5)); }
+    50%      { filter:brightness(1.18) drop-shadow(0 0 20px rgba(255,220,245,.95)) drop-shadow(0 0 60px rgba(170,215,255,.65)); }
   }
   /* 扇翅膀：整只被压扁再回弹，配合下行摆动 */
   @keyframes phoenixFlap{
@@ -984,16 +1632,6 @@
     100% { transform:translate(-50%, -50%) translate(-7vw,  2vh) rotate(-4deg); }
   }
   .lock.ok{ opacity:0; transform:scale(1.04); pointer-events:none; }
-
-  /* 密码页的漂浮光尘 */
-  #dustCanvas{
-    position:absolute;
-    inset:0;
-    width:100%;
-    height:100%;
-    z-index:3;
-    pointer-events:none;
-  }
   .lock.shake .lock-box{ animation:lockShake .42s ease; }
   @keyframes lockShake{
     0%, 100%{ transform:translateX(0); }
@@ -1088,6 +1726,64 @@
     transition:color .2s ease, opacity .2s ease;
   }
   .lock-forgot:active{ opacity:.55; }
+
+  /* ---- 右下角管理员入口 ---- */
+  .admin-entry{
+    position:absolute;
+    right:18px;
+    bottom:16px;
+    z-index:5;
+    display:flex;
+    flex-direction:column;
+    align-items:flex-end;
+    gap:8px;
+  }
+  .admin-open{
+    border:0;
+    background:none;
+    color:rgba(255, 226, 240, .38);
+    font-size:11px;
+    letter-spacing:.18em;
+    padding:6px 8px;
+    cursor:pointer;
+    transition:color .25s ease;
+  }
+  .admin-open:hover{ color:rgba(255, 240, 250, .9); }
+  .admin-box{
+    display:none;
+    align-items:center;
+    gap:6px;
+    padding:6px;
+    border-radius:12px;
+    background:rgba(32, 10, 26, .55);
+    border:1px solid rgba(255, 255, 255, .16);
+    box-shadow:0 12px 28px -14px rgba(0,0,0,.7);
+    -webkit-backdrop-filter:blur(10px);
+            backdrop-filter:blur(10px);
+  }
+  .admin-entry.open .admin-box{ display:flex; }
+  .admin-box.shake{ animation:lockShake .42s ease; }
+  .admin-input{
+    width:104px;
+    padding:6px 8px;
+    border:0;
+    border-radius:8px;
+    background:rgba(255, 255, 255, .14);
+    color:#fff;
+    font-size:12px;
+    outline:none;
+  }
+  .admin-input::placeholder{ color:rgba(255, 255, 255, .45); }
+  .admin-go{
+    border:0;
+    border-radius:8px;
+    padding:6px 10px;
+    font-size:12px;
+    color:#fff;
+    background:linear-gradient(135deg, #ff5b93, #b34df0);
+    cursor:pointer;
+  }
+  .admin-go:active{ transform:scale(.96); }
 
   /* ---- 页面四周的跑马灯边框 ---- */
   .marquee{
@@ -1248,11 +1944,23 @@
     <button class="lock-forgot" id="lockForgot" type="button">忘记密码？</button>
     <div class="lock-tip" id="lockTip"></div>
   </div>
+
+  <!-- 右下角：管理员入口 -->
+  <div class="admin-entry" id="adminEntry">
+    <button class="admin-open" id="adminOpen" type="button" aria-label="管理员入口">管理员</button>
+    <div class="admin-box" id="adminBox">
+      <input class="admin-input" id="adminInput" type="text" maxlength="6"
+             autocomplete="off" autocapitalize="off" autocorrect="off"
+             spellcheck="false" placeholder="管理员密码" />
+      <button class="admin-go" id="adminGo" type="button">进入</button>
+    </div>
+  </div>
 </div>
 <canvas id="snowCanvas"></canvas>
 <canvas id="bokehCanvas"></canvas>
 <canvas id="fireCanvas"></canvas>
 <div class="vignette"></div>
+<canvas id="moteCanvas"></canvas>
 
 <div class="bunny b1">
   <img class="kitty-img" src="kitty.png" alt="" />
@@ -1269,37 +1977,68 @@
 
 <div class="stage" id="stage">
   <!-- 信纸：一张一页，点击依次抽出 -->
+  <div class="tilt" id="tilt">
   <div class="sheets" id="sheets">
     <article class="sheet" style="--i:0; --r:-1.8">
       <div class="sheet-brand">L O V E &nbsp;&nbsp; Y O U</div>
       <h2>慧娴，生日快乐</h2>
       <p class="sheet-lead">见字如面。</p>
-      <div class="sheet-no">1 / 6</div>
+      <div class="sheet-no">1 / 12</div>
     </article>
 
     <article class="sheet" style="--i:1; --r:1.2">
       <p>认识你快六年了，这个数字说出来，连我自己都愣了一下。刚开始的时候，我其实不太敢跟你说话，总觉得你身上带着一点距离感。慢慢熟悉之后，才发现你特别温柔好相处。那段日子，随便分享日常、随口闲聊，都是很舒服的时光。</p>
-      <div class="sheet-no">2 / 6</div>
+      <div class="sheet-no">2 / 12</div>
     </article>
 
     <article class="sheet" style="--i:2; --r:-0.9">
       <p>后来我们慢慢少了联系，聊天框安静下来，心里其实一直觉得遗憾。不是怪谁，只是常常会想，好好的关系，怎么就慢慢变淡了。</p>
-      <div class="sheet-no">3 / 6</div>
+      <div class="sheet-no">3 / 12</div>
     </article>
 
     <article class="sheet" style="--i:3; --r:1.4">
       <p>六年的缘分不是轻易就能抹去的，那些相处的片段我一直记得。今天不想只发一句简单的生日快乐，我想认真告诉你：我很珍惜和你的这份情谊。如果你愿意，我们可以慢慢重新熟悉，不用着急，顺其自然就好。</p>
-      <div class="sheet-no">4 / 6</div>
+      <div class="sheet-no">4 / 12</div>
     </article>
 
-    <article class="sheet" style="--i:4; --r:-0.7">
+    <article class="sheet" style="--i:4; --r:-1.1">
+      <p>认识了真的好多好多年，我知道我有时候神经大条，可能很多事情容易想复杂，有的事情又容易想简单，这不是我的初心，有时候想用自己的方式去表达，又怕词不达意的后果。</p>
+      <div class="sheet-no">5 / 12</div>
+    </article>
+
+    <article class="sheet" style="--i:5; --r:0.8">
+      <p>很多时候我都在纠结，到底该怎么说话才不会让你误会。我常常会反复斟酌一段话，打了又删，删了又打，害怕太重会给你压力，太轻又好像没有说出我心里真实的想法。</p>
+      <div class="sheet-no">6 / 12</div>
+    </article>
+
+    <article class="sheet sheet-long" style="--i:6; --r:-0.6">
+      <p>这么多年走来，我们有过无话不谈的时候，也经历过慢慢冷淡、少了联系的阶段。其实偶尔我也会胡思乱想，会不会是我哪里做得不好，慢慢拉开了我们之间的距离。但静下心想想，成年人的友情本来就很难一直维持热烈，大家都有自己的生活要忙，会遇到不同的人，奔赴不一样的日子。</p>
+      <div class="sheet-no">7 / 12</div>
+    </article>
+
+    <article class="sheet sheet-long" style="--i:7; --r:1.3">
+      <p>可就算我们没有常常聊天，可能有些细碎的记忆会记不住，但当初聊天时轻松自在的感觉，那些随口的吐槽和碎碎念带来的开心，我始终记得。我从来没有想过要弄丢这段关系，只是常常不知道该怎么主动，怕我的主动变成你的负担，怕一腔热忱最后只剩尴尬。</p>
+      <div class="sheet-no">8 / 12</div>
+    </article>
+
+    <article class="sheet sheet-long" style="--i:8; --r:-1.0">
+      <p>我也明白没有人能一直陪在谁身边，天下没有不散的筵席这个道理我懂。只是心里还是会舍不得，舍不得这份积攒了这么多年的情谊。我不奢求我们可以回到从前时时刻刻都在聊天的样子，只是希望就算隔了很久没有联系，再次说起话的时候，我们依旧不会觉得生疏。</p>
+      <div class="sheet-no">9 / 12</div>
+    </article>
+
+    <article class="sheet" style="--i:9; --r:1.1">
+      <p>如果偶尔我的言行让你觉得不舒服，希望你可以和我说，不要默默放在心里。我很珍惜你，也珍惜这份漫长的相遇，我想慢慢把这份友情好好守住。</p>
+      <div class="sheet-no">10 / 12</div>
+    </article>
+
+    <article class="sheet" style="--i:10; --r:-0.7">
       <p>新的一岁，愿你平安顺遂，少些烦恼，想要做的事都能如愿。慧娴，生日快乐。希望我们的故事，不止停留在过去。</p>
-      <div class="sheet-no">5 / 6</div>
+      <div class="sheet-no">11 / 12</div>
     </article>
 
-    <article class="sheet sheet-photo-page" style="--i:5; --r:0.6">
+    <article class="sheet sheet-photo-page" style="--i:11; --r:0.6">
       <img class="sheet-photo" src="photo.jpg" alt="合照" />
-      <div class="sheet-no">6 / 6</div>
+      <div class="sheet-no">12 / 12</div>
     </article>
   </div>
 
@@ -1307,22 +2046,32 @@
     <div class="env-mouth"></div>
     <div class="seal"><span>♥</span></div>
   </div>
+  </div><!-- /tilt -->
 
   <button class="close-btn" id="closeSheet" type="button" title="合上信封" aria-label="合上信封">✕</button>
 </div>
 <div class="tip" id="tip">点击信封打开</div>
 
+<svg width="0" height="0" aria-hidden="true" style="position:absolute">
+  <defs>
+    <linearGradient id="sndGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%"   stop-color="#ff5b93"/>
+      <stop offset="100%" stop-color="#b34df0"/>
+    </linearGradient>
+  </defs>
+</svg>
 <button class="sound-btn" id="soundBtn" type="button" title="音效开关" aria-label="音效开关">
-  <svg class="ico-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"
-       stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-    <path d="M4 9.4h3.1L12 5.4v13.2l-4.9-4H4z"/>
-    <path d="M15.5 9.1a4.2 4.2 0 0 1 0 5.8"/>
-    <path d="M18.1 6.6a7.8 7.8 0 0 1 0 10.8"/>
+  <svg class="ico-on" viewBox="0 0 24 24" aria-hidden="true">
+    <path fill="url(#sndGrad)" d="M11.4 4.6 7.6 7.4H4.9A1.5 1.5 0 0 0 3.4 8.9v6.2a1.5 1.5 0 0 0 1.5 1.5h2.7l3.8 2.8a1.05 1.05 0 0 0 1.7-.85V5.45a1.05 1.05 0 0 0-1.7-.85z"/>
+    <path fill="none" stroke="url(#sndGrad)" stroke-width="1.9" stroke-linecap="round"
+          d="M16.2 9.1a4.1 4.1 0 0 1 0 5.8"/>
+    <path fill="none" stroke="url(#sndGrad)" stroke-width="1.9" stroke-linecap="round"
+          d="M18.9 6.6a7.6 7.6 0 0 1 0 10.8"/>
   </svg>
-  <svg class="ico-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"
-       stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-    <path d="M4 9.4h3.1L12 5.4v13.2l-4.9-4H4z"/>
-    <path d="M16 9.3l4.4 5.4M20.4 9.3L16 14.7"/>
+  <svg class="ico-off" viewBox="0 0 24 24" aria-hidden="true">
+    <path fill="url(#sndGrad)" d="M11.4 4.6 7.6 7.4H4.9A1.5 1.5 0 0 0 3.4 8.9v6.2a1.5 1.5 0 0 0 1.5 1.5h2.7l3.8 2.8a1.05 1.05 0 0 0 1.7-.85V5.45a1.05 1.05 0 0 0-1.7-.85z"/>
+    <path fill="none" stroke="url(#sndGrad)" stroke-width="2" stroke-linecap="round"
+          d="M16.3 9.4l5.1 5.6M21.4 9.4l-5.1 5.6"/>
   </svg>
 </button>
 
@@ -1616,6 +2365,45 @@
 </div>
 
 <div class="cake-layer" id="cakeLayer" aria-hidden="true"></div>
+
+<!-- 信封页下方：我的世界方块按钮，进入下一页 -->
+<button class="mc-btn mc-next" id="nextBtn" type="button">
+  <span class="mc-cube" aria-hidden="true"></span>
+  下一页
+</button>
+
+<!-- 第二页：像素方块风 -->
+<div class="page2" id="page2">
+  <div class="p2-grid" aria-hidden="true"></div>
+  <div class="p2-inner">
+    <div class="p2-kicker">FOR 慧娴</div>
+    <h1 class="p2-title">生日快乐</h1>
+
+    <div class="cake-stage">
+      <button class="mc-btn p2-tap" id="tapBtn" type="button">
+        <span class="mc-cube" aria-hidden="true"></span>
+        点我点我
+      </button>
+
+      <div class="cake-wrap" id="cakeWrap">
+        <div class="cake" id="cake"></div>
+        <button class="candle-hit" id="candleHit" type="button" title="吹灭蜡烛" aria-label="吹灭蜡烛"></button>
+        <div class="halves" id="halves"></div>
+        <div class="qmark-wrap" id="qmark">
+          <div class="qmark">?</div>
+          <div class="qtext">我的刀呢</div>
+        </div>
+        <div class="pk-row" id="pkRow"></div>
+        <div class="pk-msg" id="pkMsg">空的…</div>
+      </div>
+    </div>
+
+    <button class="mc-btn mc-back" id="backBtn" type="button">
+      <span class="mc-cube" aria-hidden="true"></span>
+      返回
+    </button>
+  </div>
+</div>
 
 <!-- 背景音乐 -->
 <audio id="bgm" src="11月4日.mp3" loop preload="auto" playsinline></audio>
@@ -1915,6 +2703,177 @@ function bokehLoop(t){
 }
 bokehLoop();
 
+/* ==========================================================
+   信封页的互动光尘：指针靠近会被推开，指到哪儿哪儿就亮
+   ========================================================== */
+let startMotes = function(){};   // 由下面的模块替换
+
+(function(){
+  const cv = document.getElementById('moteCanvas');
+  if (!cv) return;
+
+  const ctx = cv.getContext('2d');
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const SMALL = window.innerWidth < 540;
+  const COUNT = SMALL ? 40 : 78;
+
+  let W = 0, H = 0, raf = null, running = false, last = 0, built = false;
+  let motes = [];
+  const ptr = { x: -999, y: -999, active: false };
+
+  // 预渲染一颗光点
+  const sprite = (function(){
+    const s = 64, c = document.createElement('canvas');
+    c.width = c.height = s;
+    const g = c.getContext('2d');
+    const grd = g.createRadialGradient(s / 2, s / 2, 0, s / 2, s / 2, s / 2);
+    grd.addColorStop(0, 'rgba(255,255,255,.95)');
+    grd.addColorStop(.3, 'rgba(255,214,240,.55)');
+    grd.addColorStop(1, 'rgba(255,170,220,0)');
+    g.fillStyle = grd;
+    g.fillRect(0, 0, s, s);
+    return c;
+  })();
+
+  function size(){
+    W = window.innerWidth;
+    H = window.innerHeight;
+    cv.width = Math.round(W * dpr);
+    cv.height = Math.round(H * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+
+  function makeMote(){
+    return {
+      x: Math.random() * W,
+      y: Math.random() * H,
+      ox: 0, oy: 0,                 // 被推开后的偏移，会弹回去
+      r: 2 + Math.random() * 5,
+      vx: (Math.random() - 0.5) * 0.22,
+      vy: (Math.random() - 0.5) * 0.22 - 0.06,
+      ph: Math.random() * Math.PI * 2,
+      sp: 0.4 + Math.random() * 0.9
+    };
+  }
+
+  function build(){
+    size();
+    motes = [];
+    for (let i = 0; i < COUNT; i++) motes.push(makeMote());
+    built = true;
+  }
+
+  const R = 130, R2 = R * R;
+
+  function loop(ts){
+    if (!running) return;
+    raf = requestAnimationFrame(loop);
+    if (ts - last < 1000 / 60) return;
+    last = ts;
+
+    ctx.clearRect(0, 0, W, H);
+    ctx.globalCompositeOperation = 'lighter';
+
+    for (let i = 0; i < motes.length; i++){
+      const m = motes[i];
+
+      // 缓慢漂移
+      m.x += m.vx + Math.sin(ts * 0.0006 + m.ph) * 0.1;
+      m.y += m.vy + Math.cos(ts * 0.0005 + m.ph) * 0.1;
+
+      if (m.x < -30) m.x = W + 30;
+      if (m.x > W + 30) m.x = -30;
+      if (m.y < -30) m.y = H + 30;
+      if (m.y > H + 30) m.y = -30;
+
+      const x = m.x + m.ox;
+      const y = m.y + m.oy;
+
+      // 指针排斥
+      if (ptr.active){
+        const dx = x - ptr.x;
+        const dy = y - ptr.y;
+        const d2 = dx * dx + dy * dy;
+        if (d2 < R2 && d2 > 1){
+          const d = Math.sqrt(d2);
+          const f = (1 - d / R) * 2.6;
+          m.ox += (dx / d) * f;
+          m.oy += (dy / d) * f;
+        }
+      }
+
+      // 弹回原位
+      m.ox *= 0.92;
+      m.oy *= 0.92;
+
+      // 亮度：自身呼吸 + 靠近指针时提亮
+      let a = 0.42 + 0.38 * Math.sin(ts * 0.0014 * m.sp + m.ph);
+      if (ptr.active){
+        const dx = x - ptr.x, dy = y - ptr.y;
+        const d = Math.sqrt(dx * dx + dy * dy);
+        if (d < 100) a += (1 - d / 100) * 0.7;
+      }
+      if (a <= 0.02) continue;
+
+      const r = m.r * 2.2;
+      ctx.globalAlpha = Math.min(a, 1);
+      ctx.drawImage(sprite, x - r, y - r, r * 2, r * 2);
+    }
+
+    ctx.globalAlpha = 1;
+    ctx.globalCompositeOperation = 'source-over';
+  }
+
+  window.addEventListener('pointermove', function(e){
+    ptr.x = e.clientX;
+    ptr.y = e.clientY;
+    ptr.active = true;
+  }, { passive: true });
+
+  window.addEventListener('pointerdown', function(e){
+    ptr.x = e.clientX;
+    ptr.y = e.clientY;
+    ptr.active = true;
+  }, { passive: true });
+
+  window.addEventListener('pointerup', function(e){
+    if (e.pointerType !== 'mouse') ptr.active = false;
+  }, { passive: true });
+
+  window.addEventListener('pointercancel', function(){ ptr.active = false; }, { passive: true });
+  document.addEventListener('pointerleave', function(){ ptr.active = false; });
+
+  window.addEventListener('resize', function(){
+    if (!built) return;
+    size();
+    for (let i = 0; i < motes.length; i++){
+      if (motes[i].x > W) motes[i].x = Math.random() * W;
+      if (motes[i].y > H) motes[i].y = Math.random() * H;
+    }
+  });
+
+  document.addEventListener('visibilitychange', function(){
+    if (document.hidden){
+      running = false;
+      if (raf) cancelAnimationFrame(raf);
+      raf = null;
+    } else if (built){
+      running = true;
+      last = 0;
+      raf = requestAnimationFrame(loop);
+    }
+  });
+
+  // 进入信封页时才启动
+  startMotes = function(){
+    if (running) return;
+    if (!built) build();
+    running = true;
+    last = 0;
+    raf = requestAnimationFrame(loop);
+  };
+})();
+
 const fireCanvas = document.getElementById("fireCanvas");
 const fireCtx = fireCanvas.getContext("2d");
 // 按屏幕像素比放大画布，文字才不会发虚
@@ -2022,6 +2981,78 @@ function ensureAudio(){
   }
   if (audioCtx.state === 'suspended') { audioCtx.resume(); }
   return audioCtx;
+}
+
+// 礼盒打开那一下的“噗”
+function playPop(){
+  if (!soundOn || !pageEntered) return;
+  const ctx = ensureAudio();
+  if (!ctx || !masterGain) return;
+
+  const t0 = ctx.currentTime;
+
+  const osc = ctx.createOscillator();
+  const og = ctx.createGain();
+  osc.type = 'triangle';
+  osc.frequency.setValueAtTime(900, t0);
+  osc.frequency.exponentialRampToValueAtTime(150, t0 + 0.11);
+  og.gain.setValueAtTime(0.0001, t0);
+  og.gain.exponentialRampToValueAtTime(0.32, t0 + 0.008);
+  og.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.19);
+  osc.connect(og).connect(masterGain);
+  osc.start(t0);
+  osc.stop(t0 + 0.21);
+
+  const dur = 0.18;
+  const len = Math.max(1, Math.floor(ctx.sampleRate * dur));
+  const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+  const d = buf.getChannelData(0);
+  for (let i = 0; i < len; i++){
+    d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3);
+  }
+  const src = ctx.createBufferSource();
+  src.buffer = buf;
+  const bp = ctx.createBiquadFilter();
+  bp.type = 'bandpass';
+  bp.frequency.value = 2200;
+  bp.Q.value = 0.9;
+  const ng = ctx.createGain();
+  ng.gain.value = 0.2;
+  src.connect(bp).connect(ng).connect(masterGain);
+  src.start(t0);
+}
+
+// 吹蜡烛的“呼——”
+function playWhoosh(){
+  if (!soundOn || !pageEntered) return;
+  const ctx = ensureAudio();
+  if (!ctx || !masterGain) return;
+
+  const t0 = ctx.currentTime;
+  const dur = 0.5;
+  const len = Math.max(1, Math.floor(ctx.sampleRate * dur));
+  const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+  const d = buf.getChannelData(0);
+  for (let i = 0; i < len; i++){
+    d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.2);
+  }
+
+  const src = ctx.createBufferSource();
+  src.buffer = buf;
+
+  const bp = ctx.createBiquadFilter();
+  bp.type = 'bandpass';
+  bp.Q.value = 0.7;
+  bp.frequency.setValueAtTime(2800, t0);
+  bp.frequency.exponentialRampToValueAtTime(620, t0 + dur);
+
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(0.0001, t0);
+  g.gain.exponentialRampToValueAtTime(0.16, t0 + 0.06);
+  g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+
+  src.connect(bp).connect(g).connect(masterGain);
+  src.start(t0);
 }
 
 // 注：烟花本身的音效目前不再自动触发（只有视觉烟花）；
@@ -2291,7 +3322,7 @@ function startBgm(){
 });
 
 document.body.addEventListener('click',(e)=>{
-  if(e.target.closest('.stage') || e.target.closest('.sound-btn') || e.target.closest('.cat') || e.target.closest('.intro') || e.target.closest('.lock')) return;
+  if(e.target.closest('.stage') || e.target.closest('.sound-btn') || e.target.closest('.cat') || e.target.closest('.bunny') || e.target.closest('.intro') || e.target.closest('.lock')) return;
   bloomText(e.clientX,e.clientY);   // 荧光“生日快乐”四散
 })
 
@@ -2337,6 +3368,117 @@ function updateTip(){
     tip.textContent = '第 ' + (cur + 1) + ' / ' + TOTAL + ' 张 · 再点换下一张';
   }
 }
+
+// 信封的一次性入场动画（苹果发布会式：浮出、落定、停住）
+function revealStage(){
+  if (!stage || stage.classList.contains('reveal')) return;
+  stage.classList.add('reveal');
+  startMotes();
+}
+
+/* ==========================================================
+   倾斜：按住拖动，信封和所有信纸作为一个整体跟着倾
+   （不用陀螺仪，避免弹权限窗）
+   ========================================================== */
+(function(){
+  const tilt = document.getElementById('tilt');
+  if (!tilt) return;
+
+  const MAX_Y = 13;     // 左右最大角度
+  const MAX_X = 10;     // 前后最大角度
+  const DRAG_PX = 220;  // 拖多远到最大角度
+
+  function unit(v){ return v < -1 ? -1 : (v > 1 ? 1 : v); }
+
+  function set(x, y){
+    tilt.style.transform =
+      'rotateX(' + x.toFixed(2) + 'deg) rotateY(' + y.toFixed(2) + 'deg)';
+  }
+
+  let dragging = false;
+  let startX = 0, startY = 0;
+  let moved = false;
+  let curX = 0, curY = 0;
+  let vx = 0, lastX = 0, lastT = 0;
+
+  function onDown(e){
+    dragging = true;
+    moved = false;
+    startX = e.clientX;
+    startY = e.clientY;
+    curX = 0; curY = 0;
+    vx = 0; lastX = e.clientX; lastT = 0;
+    tilt.classList.remove('spin-right', 'spin-left');
+    tilt.style.transition = 'none';
+  }
+
+  function onDrag(e){
+    if (!dragging) return;
+    const dx = e.clientX - startX;
+    const dy = e.clientY - startY;
+    if (Math.abs(dx) + Math.abs(dy) > 6) moved = true;
+
+    // 速度（px/ms），用来判断"甩"得够不够狠
+    const now = performance.now();
+    if (lastT){
+      const dt = now - lastT;
+      if (dt > 0) vx = vx * 0.6 + ((e.clientX - lastX) / dt) * 0.4;
+    }
+    lastX = e.clientX;
+    lastT = now;
+
+    curX = unit(-dy / DRAG_PX) * MAX_X;
+    curY = unit(dx / DRAG_PX) * MAX_Y;
+    set(curX, curY);
+  }
+
+  function spin(dir){
+    tilt.style.setProperty('--sx', curX.toFixed(2) + 'deg');
+    tilt.style.setProperty('--sy', curY.toFixed(2) + 'deg');
+    tilt.classList.remove('spin-right', 'spin-left');
+    void tilt.offsetWidth;
+    tilt.classList.add(dir > 0 ? 'spin-right' : 'spin-left');
+
+    tilt.addEventListener('animationend', function(){
+      tilt.classList.remove('spin-right', 'spin-left');
+      curX = 0; curY = 0;
+      tilt.style.transition = 'transform .2s ease-out';
+      set(0, 0);
+    }, { once: true });
+  }
+
+  function onUp(){
+    if (!dragging) return;
+    dragging = false;
+
+    // 甩得够快 → 整圈翻过去（1.2 px/ms ≈ 每秒 1200px）
+    if (Math.abs(vx) > 1.2){
+      spin(vx > 0 ? 1 : -1);
+      return;
+    }
+
+    tilt.style.transition = 'transform .55s cubic-bezier(.18,.9,.28,1)';
+    curX = 0; curY = 0;
+    set(0, 0);
+    setTimeout(function(){
+      if (!dragging) tilt.style.transition = 'transform .2s ease-out';
+    }, 600);
+  }
+
+  // 拖过之后的那次 click 吞掉，免得顺手把信封点开
+  function swallowClick(e){
+    if (!moved) return;
+    moved = false;
+    e.stopPropagation();
+    e.preventDefault();
+  }
+
+  document.addEventListener('pointerdown', onDown, { passive: true });
+  document.addEventListener('pointermove', onDrag, { passive: true });
+  document.addEventListener('pointerup', onUp, { passive: true });
+  document.addEventListener('pointercancel', onUp, { passive: true });
+  document.addEventListener('click', swallowClick, true);
+})();
 
 function hitRect(el, x, y){
   if (!el) return false;
@@ -2693,6 +3835,729 @@ updateTip();
   scheduleBreak();
 })();
 /* ==========================================================
+   点 Kitty 扔出一个红色礼物盒
+   ========================================================== */
+(function(){
+  const bunnies = document.querySelectorAll('.bunny');
+  if (!bunnies.length) return;
+
+  Array.prototype.forEach.call(bunnies, function(b){
+    b.addEventListener('click', function(e){
+      e.stopPropagation();
+      spawnGift(b);
+    });
+  });
+
+  let activeGift = null;   // 同一时间只允许一个礼物盒
+
+  function spawnGift(b){
+    if (activeGift && activeGift.isConnected && !activeGift.dataset.opened) return;
+
+    const r = b.getBoundingClientRect();
+    if (!r.width) return;
+
+    const g = document.createElement('div');
+    g.className = 'gift';
+
+    // 朝画面内侧扔
+    const cx = r.left + r.width / 2;
+    const cy = r.top + r.height * 0.5;
+    const toRight = cx < window.innerWidth / 2;
+    g.style.setProperty('--dx', ((toRight ? 1 : -1) * (70 + Math.random() * 110)) + 'px');
+
+    // 落点保证在屏幕里，别掉出下边界
+    const room = window.innerHeight - cy - 40;
+    const dy = Math.max(-140, Math.min(62, Math.round(room)));
+    g.style.setProperty('--dy', dy + 'px');
+
+    g.style.left = cx + 'px';
+    g.style.top = cy + 'px';
+
+    const bow = document.createElement('span');
+    bow.className = 'bow';
+    g.appendChild(bow);
+
+    document.body.appendChild(g);
+    activeGift = g;
+
+    g.addEventListener('animationend', function(){
+      if (g.dataset.opened) return;
+      g.classList.add('landed');
+      // 落地后 2.2 秒还没人去点，就自己打开
+      setTimeout(function(){
+        if (g.isConnected && !g.dataset.opened) openGift(g);
+      }, 2200);
+    });
+
+    g.addEventListener('click', function(ev){
+      ev.stopPropagation();
+      openGift(g);
+    });
+  }
+
+  /* 点开礼物盒：盒子放大淡出，同时喷出一把礼花飘带 */
+  function openGift(g){
+    if (g.dataset.opened) return;
+    g.dataset.opened = '1';
+
+    const r = g.getBoundingClientRect();
+    const cx = r.left + r.width / 2;
+    const cy = r.top + r.height / 2;
+    const fall = Math.max(80, window.innerHeight - cy - 6);
+
+    g.classList.add('opening');
+    setTimeout(function(){
+      if (g.parentNode) g.remove();
+      if (activeGift === g) activeGift = null;
+    }, 320);
+
+    // 拆开的那一下：声音 + 白光 + 冲击环
+    playPop();
+    burstEffect(cx, cy);
+
+    const COLORS = ['#ff5b93', '#ffc93c', '#8a6cff', '#4ec9ff', '#59e0a8', '#ff8a3d'];
+    const n = 22;
+    for (let i = 0; i < n; i++){
+      const p = document.createElement('span');
+      p.className = 'ribbon';
+      p.style.setProperty('--w', (6 + Math.random() * 5).toFixed(0) + 'px');
+      p.style.setProperty('--h', (28 + Math.random() * 28).toFixed(0) + 'px');
+      p.style.setProperty('--c', COLORS[(Math.random() * COLORS.length) | 0]);
+      p.style.setProperty('--dur', (4.2 + Math.random() * 2.6).toFixed(2) + 's');
+      p.style.setProperty('--delay', (Math.random() * 0.16).toFixed(2) + 's');
+      p.style.setProperty('--rot', ((Math.random() * 540 - 270) | 0) + 'deg');
+      p.style.setProperty('--fall', Math.round(fall * (0.92 + Math.random() * 0.16)) + 'px');
+
+      // 向四周炸开：随机角度 + 速度，整体偏上（像礼花往上喷）
+      const ang = Math.random() * Math.PI * 2;
+      const spd = 80 + Math.random() * 155;
+      p.style.setProperty('--bx', (Math.cos(ang) * spd).toFixed(0) + 'px');
+      p.style.setProperty('--by', (Math.sin(ang) * spd * 0.75 - 70).toFixed(0) + 'px');
+      p.style.setProperty('--ddx', ((Math.random() - 0.5) * 160).toFixed(0) + 'px');
+
+      p.style.left = (cx + (Math.random() - 0.5) * 20) + 'px';
+      p.style.top = (cy + (Math.random() - 0.5) * 16) + 'px';
+      document.body.appendChild(p);
+
+      // 飘到最下方淡出后自动移除
+      p.addEventListener('animationend', function(){
+        if (p.parentNode) p.remove();
+      });
+    }
+  }
+
+  /* 炸开瞬间的两层特效 */
+  function burstEffect(x, y){
+    ['burst-flash', 'burst-ring'].forEach(function(cls){
+      const el = document.createElement('div');
+      el.className = cls;
+      el.style.left = x + 'px';
+      el.style.top = y + 'px';
+      document.body.appendChild(el);
+      el.addEventListener('animationend', function(){
+        if (el.parentNode) el.remove();
+      });
+    });
+  }
+})();
+
+/* ==========================================================
+   我的世界方块按钮：进入第二页 / 返回上一页 + 像素蛋糕
+   ========================================================== */
+(function(){
+  const nextBtn = document.getElementById('nextBtn');
+  const backBtn = document.getElementById('backBtn');
+  const page2 = document.getElementById('page2');
+  const tapBtn = document.getElementById('tapBtn');
+  const cakeWrap = document.getElementById('cakeWrap');
+  const cakeEl = document.getElementById('cake');
+  const qmark = document.getElementById('qmark');
+  const pkRow = document.getElementById('pkRow');
+  const pkMsg = document.getElementById('pkMsg');
+  const halvesEl = document.getElementById('halves');
+  const candleHit = document.getElementById('candleHit');
+  const titleEl = document.querySelector('.p2-title');
+  if (!nextBtn || !page2) return;
+
+  /* ---- 用字符画拼出像素蛋糕 ---- */
+  const COLORS = {
+    Y: '#ffd34d',   // 火焰
+    O: '#ff9a3c',   // 火焰外圈
+    W: '#fffdf6',   // 蜡烛
+    R: '#ff4b5c',   // 樱桃
+    P: '#ff8ec0',   // 糖霜
+    D: '#e05c9b',   // 糖霜阴影
+    C: '#fff2dd',   // 蛋糕体
+    B: '#c98a5a',   // 夹层
+    S: '#cfd6dd'    // 托盘
+  };
+
+  const MAP = [
+    '..........Y.........',
+    '.........YOY........',
+    '.........YOY........',
+    '.........WW.........',
+    '.........WW.........',
+    '.........WW.........',
+    '.........WW.........',
+    '....R....WW....R....',
+    '....PPPPPWWPPPPP....',
+    '...PPPPPPWWPPPPPP...',
+    '...PDPDPDPDPDPDPP...',
+    '...CCCCCCCCCCCCCC...',
+    '...CCCCCCCCCCCCCC...',
+    '...BBBBBBBBBBBBBB...',
+    '...BBBBBBBBBBBBBB...',
+    '..SSSSSSSSSSSSSSSS..',
+    '....................'
+  ];
+
+  function pixelSVG(map, colors){
+    const rows = map.length;
+    const cols = map[0].length;
+    let svg = '<svg viewBox="0 0 ' + cols + ' ' + rows +
+              '" shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg">';
+
+    for (let y = 0; y < rows; y++){
+      const line = map[y];
+      let x = 0;
+      while (x < cols){
+        const ch = line[x];
+        if (ch === '.'){ x++; continue; }
+        let w = 1;
+        while (x + w < cols && line[x + w] === ch) w++;
+        svg += '<rect x="' + x + '" y="' + y + '" width="' + w +
+               '" height="1" fill="' + (colors[ch] || '#fff') + '"/>';
+        x += w;
+      }
+    }
+
+    return svg + '</svg>';
+  }
+
+  let candleLit = false;
+  let blownOut = false;   // 蜡烛点燃过又被吹灭，才允许切蛋糕
+
+  // 未点燃时，把火焰像素（Y/O）全部挖掉，只留蜡烛
+  function cakeMap(lit){
+    if (lit) return MAP;
+    return MAP.map(function(line){ return line.replace(/[YO]/g, '.'); });
+  }
+
+  function setCandle(on){
+    candleLit = !!on;
+    if (on) blownOut = false;   // 重新点燃后，又得吹灭一次才能切
+    if (cakeEl) cakeEl.innerHTML = pixelSVG(cakeMap(on), COLORS);
+    if (cakeWrap) cakeWrap.classList.toggle('lit', !!on);
+  }
+
+  function buildCake(){ setCandle(false); }
+
+  buildCake();
+
+  /* ---- 切蛋糕的刀 ---- */
+  const KNIFE = [
+    '...SSS..',
+    '..SSSS..',
+    '..SSSS..',
+    '..SSSS..',
+    '..SSSS..',
+    '..SSSS..',
+    '..SSSS..',
+    '...SS...',
+    '..HHHH..',
+    '..HHHH..',
+    '..HHHH..',
+    '..HHHH..',
+    '...HH...'
+  ];
+
+  const KNIFE_COLORS = {
+    S: '#eaf1f7',   // 刀刃
+    H: '#b5793f'    // 刀柄
+  };
+
+  /* ---- 我的世界草方块 ---- */
+  const GRASS = [
+    'GGGGGGGGGGGGGG',
+    'GGgGGGGGGGgGGG',
+    'GGGGGgGGGGGGGG',
+    'GgGGGGGGGGgGGG',
+    'GGGGGGgGGGGGGG',
+    'GGGGGGGGGGGGGG',
+    'GGDGGGDGGGGDGG',
+    'DDDDDDDDDDDDDD',
+    'DDdDDDDDDDDDDD',
+    'DDDDDDeDDDDdDD',
+    'DdDDDDDDDDDDDD',
+    'DDDDDDDdDDDDDD',
+    'DDeDDDDDDDDdDD',
+    'DDDDDDDDDDDDDD'
+  ];
+
+  const GRASS_COLORS = {
+    G: '#7ec850',   // 草（亮）
+    g: '#5fa93a',   // 草（暗）
+    D: '#8a6240',   // 泥土
+    d: '#6d4b2e',   // 泥土（暗）
+    e: '#a37b52'    // 泥土（亮）
+  };
+
+  /* ---- 像素打火机 ---- */
+  const LIGHTER = [
+    '..MMM...',
+    '..MMM...',
+    '..MMM...',
+    '.BBBBB..',
+    '.BWBBB..',
+    '.BBBBB..',
+    '.BBBBB..',
+    '.BBBBB..',
+    '.BBDBB..',
+    '.BBBBB..',
+    '.BBBBB..',
+    '.BBBBB..'
+  ];
+
+  const LIGHTER_COLORS = {
+    M: '#cfd8e3',   // 金属头
+    B: '#ff5f6d',   // 机身
+    W: '#ffe8ec',   // 高光
+    D: '#c2354a'    // 暗面
+  };
+
+  /* ---- 四个问号方块：随机一个藏着刀（也可能全空） ---- */
+  let pkEls = [];
+  let pkKnife = -1;
+  let pkDone = false;
+  let pkLeft = 0;
+
+  function spawnBlocks(){
+    if (pkDone || pkEls.length) return;
+    if (!pkRow) return;
+
+    // 蜡烛还没吹灭，不许切
+    if (!blownOut){
+      showHint('先把蜡烛吹灭呀');
+      return;
+    }
+
+    pkRow.innerHTML = '';
+    pkEls = [];
+    pkLeft = 4;
+    // 保底：四块里必定有一块藏着刀，前三个都空的话第四个一定中
+    pkKnife = (Math.random() * 4) | 0;
+
+    for (let i = 0; i < 4; i++){
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'pk-block';
+      b.style.animationDelay = (i * 0.08) + 's';
+      b.innerHTML =
+        '<span class="pk-tex">' + pixelSVG(GRASS, GRASS_COLORS) + '</span>' +
+        '<span class="pk-q">?</span>';
+      (function(idx){
+        b.addEventListener('click', function(e){
+          e.stopPropagation();
+          pickBlock(idx);
+        });
+      })(i);
+      pkRow.appendChild(b);
+      pkEls.push(b);
+    }
+
+    pkRow.classList.add('show');
+    if (pkMsg) pkMsg.classList.remove('show');
+  }
+
+  function pickBlock(i){
+    if (pkDone) return;
+    const b = pkEls[i];
+    if (!b || b.classList.contains('poof') || b.classList.contains('reveal')) return;
+
+    if (i === pkKnife){
+      pkDone = true;
+      b.classList.add('reveal');
+      b.textContent = '';
+      b.innerHTML = pixelSVG(KNIFE, KNIFE_COLORS);
+      b.title = '点一下拿刀';
+
+      // 点这把刀 → 出现可拖动的刀，同时这块方块消失，不挡蛋糕
+      b.addEventListener('click', function(e){
+        e.stopPropagation();
+        startKnife(b);
+      });
+
+      // 其余三个直接消失
+      pkEls.forEach(function(x, k){
+        if (k === i) return;
+        x.classList.add('poof');
+        setTimeout(function(){ if (x.parentNode) x.remove(); }, 360);
+      });
+      return;
+    }
+
+    // 空的
+    b.classList.add('poof');
+    setTimeout(function(){ if (b.parentNode) b.remove(); }, 360);
+    pkLeft--;
+    if (pkLeft <= 0){
+      pkDone = true;
+      if (pkMsg){
+        pkMsg.textContent = '空的…';
+        pkMsg.classList.add('show');
+      }
+      setTimeout(resetBlocks, 1700);
+    }
+  }
+
+  /* ---- 切开后的截面 ---- */
+  const INNER = { 7: 'a', 8: 'a', 9: 'a', 10: 'b', 11: 'c', 12: 'b', 13: 'd' };
+  const INNER_COLORS = {
+    a: '#ffc2dc',   // 糖霜内部
+    b: '#fff0d6',   // 蛋糕胚
+    c: '#e85a8a',   // 果酱层
+    d: '#b8733f'    // 底部胚
+  };
+
+  let knifeEl = null;
+  let cutDone = false;
+
+  function buildHalves(){
+    if (!halvesEl) return;
+    // 用当前状态的地图（灭掉的蜡烛不该在切口里重新亮起来）
+    const src = cakeMap(candleLit);
+    const rows = src.length;
+    const cut = Math.floor(src[0].length / 2);
+
+    function slice(from, to, edge){
+      const out = [];
+      for (let y = 0; y < rows; y++){
+        let line = src[y].slice(from, to);
+        const ch = INNER[y];
+        if (ch){
+          line = edge === 'right'
+            ? line.slice(0, -1) + ch
+            : ch + line.slice(1);
+        }
+        out.push(line);
+      }
+      return out;
+    }
+
+    const colors = Object.assign({}, COLORS, INNER_COLORS);
+    halvesEl.innerHTML =
+      '<div class="half left">' + pixelSVG(slice(0, cut, 'right'), colors) + '</div>' +
+      '<div class="half right">' + pixelSVG(slice(cut, src[0].length, 'left'), colors) + '</div>';
+
+    requestAnimationFrame(function(){
+      halvesEl.classList.add('show');
+    });
+  }
+
+  function doCut(){
+    if (cutDone) return;
+    cutDone = true;
+    if (knifeEl){ knifeEl.remove(); knifeEl = null; }
+    buildHalves();
+    // 用透明度隐藏而不是 display:none——否则外层容器会塌成 0 宽，两半就没尺寸了
+    if (cakeEl){
+      cakeEl.style.opacity = '0';
+      cakeEl.style.pointerEvents = 'none';
+    }
+    if (qmark) qmark.classList.remove('show');
+    // 切开之后标题亮起像素流光
+    if (titleEl) titleEl.classList.add('glowing');
+  }
+
+  function startKnife(block){
+    if (knifeEl || cutDone || !cakeEl) return;
+
+    if (block){
+      block.classList.add('poof');
+      setTimeout(function(){ if (block.parentNode) block.remove(); }, 360);
+    }
+
+    const cr = cakeEl.getBoundingClientRect();
+    if (!cr.width) return;
+
+    const el = document.createElement('div');
+    el.className = 'knife-tool';
+    el.innerHTML = pixelSVG(KNIFE, KNIFE_COLORS);
+    el.style.left = (cr.left + cr.width / 2) + 'px';
+    el.style.top = (cr.top - 34) + 'px';
+    el.style.transform = 'translate(-50%, -50%)';
+    (page2 || document.body).appendChild(el);
+    knifeEl = el;
+
+    let dragging = false;
+    let offX = 0, offY = 0;
+
+    function aim(){
+      const r = el.getBoundingClientRect();
+      const kx = r.left + r.width / 2;
+      const ky = r.top + r.height / 2;
+      const c = cakeEl.getBoundingClientRect();
+      const ang = Math.atan2((c.top + c.height / 2) - ky, (c.left + c.width / 2) - kx) * 180 / Math.PI + 90;
+      el.style.transform = 'translate(-50%, -50%) rotate(' + ang.toFixed(1) + 'deg)';
+    }
+    aim();
+
+    el.addEventListener('pointerdown', function(e){
+      e.preventDefault();
+      e.stopPropagation();
+      dragging = true;
+      try { el.setPointerCapture(e.pointerId); } catch (err) {}
+      const r = el.getBoundingClientRect();
+      offX = e.clientX - (r.left + r.width / 2);
+      offY = e.clientY - (r.top + r.height / 2);
+    });
+
+    el.addEventListener('pointermove', function(e){
+      if (!dragging) return;
+      e.preventDefault();
+      el.style.left = (e.clientX - offX) + 'px';
+      el.style.top = (e.clientY - offY) + 'px';
+      aim();
+    });
+
+    function endDrag(){
+      if (!dragging) return;
+      dragging = false;
+      const r = el.getBoundingClientRect();
+      const kx = r.left + r.width / 2;
+      const ky = r.top + r.height / 2;
+      const c = cakeEl.getBoundingClientRect();
+      if (kx > c.left - 12 && kx < c.right + 12 && ky > c.top - 24 && ky < c.bottom + 24){
+        doCut();
+      }
+    }
+
+    el.addEventListener('pointerup', endDrag);
+    el.addEventListener('pointercancel', endDrag);
+  }
+
+  function resetCut(){
+    cutDone = false;
+    if (knifeEl){ knifeEl.remove(); knifeEl = null; }
+    if (halvesEl){
+      halvesEl.innerHTML = '';
+      halvesEl.classList.remove('show');
+    }
+    if (cakeEl){
+      cakeEl.style.opacity = '';
+      cakeEl.style.pointerEvents = '';
+    }
+  }
+
+  /* ================= 打火机 / 蜡烛 ================= */
+  let lighterEl = null;
+  let lighterLit = false;
+
+  function flamePoint(){
+    const c = cakeEl.getBoundingClientRect();
+    return { x: c.left + c.width * 0.50, y: c.top + c.height * 0.09 };
+  }
+
+  function spawnLighter(){
+    if (lighterEl || !cakeEl) return;
+    const cr = cakeEl.getBoundingClientRect();
+    if (!cr.width) return;
+
+    const el = document.createElement('div');
+    el.className = 'lighter-tool';
+    el.innerHTML = pixelSVG(LIGHTER, LIGHTER_COLORS) + '<span class="lighter-flame"></span>';
+    el.style.left = (cr.right - 26) + 'px';
+    el.style.top = (cr.bottom - 16) + 'px';
+    el.style.transform = 'translate(-50%, -50%)';
+    (page2 || document.body).appendChild(el);
+    lighterEl = el;
+
+    let dragging = false;
+    let offX = 0, offY = 0;
+
+    el.addEventListener('pointerdown', function(e){
+      e.preventDefault();
+      e.stopPropagation();
+      dragging = true;
+      try { el.setPointerCapture(e.pointerId); } catch (err) {}
+      const r = el.getBoundingClientRect();
+      offX = e.clientX - (r.left + r.width / 2);
+      offY = e.clientY - (r.top + r.height / 2);
+    });
+
+    el.addEventListener('pointermove', function(e){
+      if (!dragging) return;
+      e.preventDefault();
+      el.style.left = (e.clientX - offX) + 'px';
+      el.style.top = (e.clientY - offY) + 'px';
+    });
+
+    function endDrag(){
+      if (!dragging) return;
+      dragging = false;
+
+      // 松手 → 出火
+      lighterLit = true;
+      el.classList.add('lit');
+
+      // 火苗正好凑到蜡烛上 → 点燃
+      const r = el.getBoundingClientRect();
+      const fx = r.left + r.width / 2;
+      const fy = r.top - 12;
+      const fp = flamePoint();
+      if (Math.hypot(fx - fp.x, fy - fp.y) < 72){
+        setCandle(true);
+      }
+    }
+
+    el.addEventListener('pointerup', endDrag);
+    el.addEventListener('pointercancel', endDrag);
+  }
+
+  function removeLighter(){
+    if (lighterEl){ lighterEl.remove(); lighterEl = null; }
+    lighterLit = false;
+  }
+
+  /* 吹灭蜡烛：火星四散 + 几道风 + 蛋糕被吹得抖一下 */
+  function blowEffect(){
+    const fp = flamePoint();
+    const host = page2 || document.body;
+
+    // 火星 / 烟
+    for (let i = 0; i < 14; i++){
+      const p = document.createElement('span');
+      p.className = 'puff';
+      const ember = i < 7;
+      const size = 4 + Math.random() * 5;
+      p.style.width = size + 'px';
+      p.style.height = size + 'px';
+      p.style.background = ember
+        ? (Math.random() < 0.5 ? '#ffd34d' : '#ff8a2f')
+        : (Math.random() < 0.5 ? '#b9b2bd' : '#8a828e');
+      p.style.left = (fp.x + (Math.random() - 0.5) * 10) + 'px';
+      p.style.top = (fp.y + (Math.random() - 0.5) * 10) + 'px';
+
+      const ang = -Math.PI / 2 + (Math.random() - 0.5) * Math.PI * 1.15;
+      const dist = 26 + Math.random() * 62;
+      p.style.setProperty('--px', (Math.cos(ang) * dist).toFixed(0) + 'px');
+      p.style.setProperty('--py', (Math.sin(ang) * dist - 12).toFixed(0) + 'px');
+      p.style.setProperty('--dur', (0.55 + Math.random() * 0.5).toFixed(2) + 's');
+
+      host.appendChild(p);
+      p.addEventListener('animationend', function(){ if (p.parentNode) p.remove(); });
+    }
+
+    // 几道横向的气流
+    for (let i = 0; i < 3; i++){
+      const g = document.createElement('span');
+      g.className = 'gust';
+      const dir = i === 0 ? -1 : 1;
+      g.style.left = fp.x + 'px';
+      g.style.top = (fp.y + (i - 1) * 7) + 'px';
+      g.style.setProperty('--gr', (dir * (6 + Math.random() * 10)).toFixed(0) + 'deg');
+      g.style.setProperty('--gx', (dir * (38 + Math.random() * 34)).toFixed(0) + 'px');
+      g.style.setProperty('--dur', (0.36 + Math.random() * 0.2).toFixed(2) + 's');
+      host.appendChild(g);
+      g.addEventListener('animationend', function(){ if (g.parentNode) g.remove(); });
+    }
+
+    // 蛋糕抖一下
+    if (cakeEl){
+      cakeEl.classList.remove('wind');
+      void cakeEl.offsetWidth;
+      cakeEl.classList.add('wind');
+    }
+
+    playWhoosh();
+  }
+
+  // 点蜡烛火焰 → 熄灭
+  if (candleHit){
+    candleHit.addEventListener('click', function(e){
+      e.stopPropagation();
+      blowEffect();
+      setCandle(false);
+      blownOut = true;      // 吹灭了，可以切蛋糕了
+    });
+  }
+
+  /* 蛋糕上的浮动提示 */
+  let hintTimer = null;
+  function showHint(text){
+    if (!pkMsg) return;
+    pkMsg.textContent = text;
+    pkMsg.classList.add('show');
+    clearTimeout(hintTimer);
+    hintTimer = setTimeout(function(){
+      if (pkMsg) pkMsg.classList.remove('show');
+    }, 1700);
+  }
+
+  function resetBlocks(){
+    pkEls = [];
+    pkKnife = -1;
+    pkDone = false;
+    pkLeft = 0;
+    if (pkRow){
+      pkRow.innerHTML = '';
+      pkRow.classList.remove('show');
+    }
+    if (pkMsg) pkMsg.classList.remove('show');
+  }
+
+  /* ---- 进入 / 返回 ---- */
+  nextBtn.addEventListener('click', function(e){
+    e.stopPropagation();
+    page2.classList.add('show');
+  });
+
+  function resetPage2(){
+    cakeWrap.classList.remove('show');
+    if (qmark) qmark.classList.remove('show');
+    if (tapBtn) tapBtn.style.display = '';
+    resetBlocks();
+    resetCut();
+    removeLighter();
+    setCandle(false);
+    blownOut = false;
+    if (titleEl) titleEl.classList.remove('glowing');
+  }
+
+  if (backBtn){
+    backBtn.addEventListener('click', function(e){
+      e.stopPropagation();
+      page2.classList.remove('show');
+      setTimeout(resetPage2, 600);
+    });
+  }
+
+  /* ---- 点我点我 → 蛋糕弹出来 → 问号出现 ---- */
+  if (tapBtn && cakeWrap){
+    tapBtn.addEventListener('click', function(e){
+      e.stopPropagation();
+      tapBtn.style.display = 'none';
+      setCandle(false);
+      cakeWrap.classList.add('show');
+      setTimeout(function(){
+        if (qmark) qmark.classList.add('show');
+      }, 600);
+      setTimeout(spawnLighter, 900);
+    });
+  }
+
+  /* ---- 再点蛋糕 → 弹出四个问号方块 ---- */
+  if (cakeWrap){
+    cakeWrap.addEventListener('click', function(e){
+      if (!cakeWrap.classList.contains('show')) return;
+      e.stopPropagation();
+      spawnBlocks();
+    });
+  }
+})();
+
+/* ==========================================================
    开场流光：一直停在这里，点一下才进入密码页
    ========================================================== */
 (function(){
@@ -2706,7 +4571,7 @@ updateTip();
     intro.classList.add('hide');
     setTimeout(() => { intro.style.display = 'none'; }, 950);
     // 同一次浏览里已经解锁过：掀开流光就等于进入信封页，这里起音乐
-    if (pageEntered) startBgm();
+    if (pageEntered){ startBgm(); revealStage(); }
   }
 
   intro.addEventListener('click', finish);
@@ -2990,7 +4855,8 @@ updateTip();
   const tip = document.getElementById('lockTip');
   if (!lock || !input || !btn) return;
 
-  const PASS = '0218';
+  const PASS = '0218';       // 她的生日
+  const ADMIN = 'sbh';       // 管理员密码，也能直接进
   const HINTS = [
     '快想想你的生日',
     '难道是我记错了',
@@ -3026,6 +4892,7 @@ updateTip();
     lock.classList.add('ok');
     setTimeout(() => {
       if (lock.parentNode) lock.parentNode.removeChild(lock);
+      revealStage();
     }, 700);
   }
 
@@ -3054,6 +4921,36 @@ updateTip();
     input.value = input.value.replace(/\D/g, '').slice(0, 4);
     if (input.value.length === 4) submit();
   });
+
+  // 右下角管理员入口：独立的输入框，只认 ADMIN
+  const entry = document.getElementById('adminEntry');
+  const openBtn = document.getElementById('adminOpen');
+  const box = document.getElementById('adminBox');
+  const adminInput = document.getElementById('adminInput');
+  const adminGo = document.getElementById('adminGo');
+
+  function checkAdmin(){
+    if (done) return;
+    const v = (adminInput.value || '').trim().toLowerCase();
+    if (v === ADMIN){ unlock(); return; }
+    box.classList.remove('shake');
+    void box.offsetWidth;
+    box.classList.add('shake');
+    adminInput.value = '';
+    adminInput.focus();
+  }
+
+  if (entry && openBtn && box && adminInput && adminGo){
+    openBtn.addEventListener('click', function(e){
+      e.stopPropagation();
+      entry.classList.toggle('open');
+      if (entry.classList.contains('open')) setTimeout(function(){ adminInput.focus(); }, 30);
+    });
+    adminGo.addEventListener('click', checkAdmin);
+    adminInput.addEventListener('keydown', function(e){
+      if (e.key === 'Enter') checkAdmin();
+    });
+  }
 
   // 忘记密码
   const forgot = document.getElementById('lockForgot');
