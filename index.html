@@ -248,6 +248,20 @@
     height: min(480px, 58vh);
     perspective: 1600px;
     cursor: default;
+    flex: none;
+  }
+  /* 信封 + 下方按钮的整体 */
+  .stage-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .stage-foot {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
   }
   /* 拖动倾斜的整体：信封 + 所有信纸一起转 */
   .tilt {
@@ -678,10 +692,7 @@
   }
 
   .tip {
-    position: absolute;
-    bottom: 86px;
-    left: 50%;
-    transform: translateX(-50%);
+    position: relative;
     color: rgba(255, 255, 255, .95);
     font-size: 12px;
     letter-spacing: .28em;
@@ -736,13 +747,9 @@
       inset -2px -2px 0 rgba(150, 90, 0, .6);
   }
   .mc-next {
-    position: fixed;
-    left: 50%;
-    bottom: 24px;
-    transform: translateX(-50%);
+    position: relative;
     z-index: 8;
   }
-  .mc-next:active { transform: translateX(-50%) translateY(4px); }
 
   /* ---- 第二页 ---- */
   .page2 {
@@ -1956,11 +1963,8 @@
 
     .mc-btn{ font-size: 13px; padding: 9px 16px; }
 
-    /* 信封页：底部按钮和提示别挤在一起 */
-    .mc-next{
-      bottom: calc(18px + env(safe-area-inset-bottom, 0px));
-    }
-    .tip{ bottom: calc(78px + env(safe-area-inset-bottom, 0px)); font-size: 11px; }
+    /* 信封页：提示字号收一点 */
+    .tip{ font-size: 11px; }
 
     /* 四角的 Kitty 缩小一点，别被信纸压住太多 */
     .bunny{
@@ -2039,6 +2043,7 @@
   <img class="kitty-img" src="kitty.png" alt="" />
 </div>
 
+<div class="stage-wrap">
 <div class="stage" id="stage">
   <!-- 信纸：一张一页，点击依次抽出 -->
   <div class="tilt" id="tilt">
@@ -2114,7 +2119,15 @@
 
   <button class="close-btn" id="closeSheet" type="button" title="合上信封" aria-label="合上信封">✕</button>
 </div>
-<div class="tip" id="tip">点击信封打开</div>
+
+<div class="stage-foot">
+  <div class="tip" id="tip">点击信封打开</div>
+  <button class="mc-btn mc-next" id="nextBtn" type="button">
+    <span class="mc-cube" aria-hidden="true"></span>
+    下一页
+  </button>
+</div>
+</div><!-- /stage-wrap -->
 
 <svg width="0" height="0" aria-hidden="true" style="position:absolute">
   <defs>
@@ -2429,12 +2442,6 @@
 </div>
 
 <div class="cake-layer" id="cakeLayer" aria-hidden="true"></div>
-
-<!-- 信封页下方：我的世界方块按钮，进入下一页 -->
-<button class="mc-btn mc-next" id="nextBtn" type="button">
-  <span class="mc-cube" aria-hidden="true"></span>
-  下一页
-</button>
 
 <!-- 第二页：像素方块风 -->
 <div class="page2" id="page2">
