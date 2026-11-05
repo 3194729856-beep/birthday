@@ -879,37 +879,109 @@
     background-color:#2a1020;
     transition:opacity .6s ease, transform .6s ease;
   }
-  /* 背景：深玫紫渐变 */
+  /* 背景：深酒紫底 */
   .lock::before{
     content:"";
     position:absolute;
     inset:0;
     z-index:0;
     background:
-      radial-gradient(circle at 50% 40%, rgba(255, 190, 225, .55) 0%, rgba(255, 150, 200, .18) 38%, rgba(90, 20, 70, 0) 68%),
-      linear-gradient(168deg, #3a1229 0%, #5d1b3c 42%, #2a0c1e 100%);
+      radial-gradient(circle at 50% 36%, rgba(255, 170, 215, .28) 0%, rgba(255, 150, 200, 0) 55%),
+      linear-gradient(168deg, #2b0f26 0%, #43173a 46%, #1b0819 100%);
   }
-  @keyframes lockBreath{
-    from{ transform:scale(1); }
-    to  { transform:scale(1.08); }
+  /* 果冻玻璃团 */
+  .jelly{
+    position:absolute;
+    z-index:1;
+    border-radius:50%;
+    pointer-events:none;
+    background:
+      radial-gradient(circle at 34% 26%,
+        rgba(255,255,255,.42) 0%,
+        rgba(255,255,255,.14) 34%,
+        rgba(255,255,255,.04) 62%,
+        rgba(255,255,255,0) 78%);
+    border:1px solid rgba(255,255,255,.14);
+    box-shadow:
+      inset 0 2px 10px rgba(255,255,255,.28),
+      inset 0 -10px 24px rgba(120, 30, 90, .22),
+      0 18px 40px rgba(0, 0, 0, .22);
+    -webkit-backdrop-filter:blur(14px) saturate(1.25);
+            backdrop-filter:blur(14px) saturate(1.25);
+    animation:jellyFloat 22s ease-in-out infinite;
+    will-change:transform;
   }
-  /* 一层压暗 + 中心提亮，让卡片浮在光里 */
+  .jelly.j1{ width:52vmax; height:52vmax; left:-12%; top:2%;  animation-duration:26s; }
+  .jelly.j2{ width:40vmax; height:40vmax; right:-10%; top:34%; animation-duration:31s; animation-delay:-6s; }
+  .jelly.j3{ width:30vmax; height:30vmax; left:24%;  bottom:-8%; animation-duration:23s; animation-delay:-12s; }
+  @keyframes jellyFloat{
+    0%, 100% { transform:translate3d(0, 0, 0) scale(1); }
+    50%      { transform:translate3d(-3vw, 2.5vh, 0) scale(1.07); }
+  }
+  /* 一层压暗 + 顶部高光，让玻璃有厚度 */
   .lock::after{
     content:"";
     position:absolute;
     inset:0;
-    z-index:1;
-    pointer-events:none;
-    background:linear-gradient(170deg, rgba(255, 190, 225, .10) 0%, rgba(30, 5, 20, .45) 100%);
-  }
-  /* 粒子凤凰 */
-  #phoenixCanvas{
-    position:absolute;
-    inset:0;
-    width:100%;
-    height:100%;
     z-index:2;
     pointer-events:none;
+    background:
+      linear-gradient(180deg, rgba(255,255,255,.10) 0%, rgba(255,255,255,0) 26%),
+      linear-gradient(170deg, rgba(255,190,225,.06) 0%, rgba(20, 4, 16, .42) 100%);
+  }
+  /* 水晶凤凰：用蒙版裁出水晶体，整只在页面里飞 */
+  .phoenix{
+    position:absolute;
+    left:50%;
+    top:44%;
+    width:min(62vw, 400px);
+    aspect-ratio:460 / 829;
+    transform:translate(-50%, -50%);
+    z-index:3;
+    pointer-events:none;
+    animation:phoenixFly 17s ease-in-out infinite;
+    will-change:transform;
+  }
+  .phoenix-body{
+    position:absolute;
+    inset:0;
+    -webkit-mask:url(phoenix-mask.png) center / contain no-repeat;
+            mask:url(phoenix-mask.png) center / contain no-repeat;
+    background:
+      linear-gradient(112deg,
+        rgba(255,255,255,.98) 0%,
+        rgba(198,228,255,.9) 18%,
+        rgba(255,208,240,.95) 38%,
+        rgba(255,255,255,1) 50%,
+        rgba(176,214,255,.9) 66%,
+        rgba(255,226,246,.95) 84%,
+        rgba(255,255,255,.98) 100%);
+    background-size:200% 200%;
+    animation:phoenixSheen 8s linear infinite, phoenixFlap 1.5s ease-in-out infinite;
+    transform-origin:50% 58%;
+    filter:
+      drop-shadow(0 0 14px rgba(255, 200, 235, .75))
+      drop-shadow(0 0 40px rgba(150, 200, 255, .45));
+    will-change:transform, background-position;
+  }
+  /* 光在晶体里流动 */
+  @keyframes phoenixSheen{
+    0%   { background-position:0% 50%; }
+    100% { background-position:200% 50%; }
+  }
+  /* 扇翅膀：整只被压扁再回弹，配合下行摆动 */
+  @keyframes phoenixFlap{
+    0%, 100% { transform:scaleY(1) scaleX(1); }
+    45%      { transform:scaleY(.9) scaleX(1.03); }
+    55%      { transform:scaleY(.92) scaleX(1.02); }
+  }
+  /* 在页面里飞：左右漂移 + 上下起伏 + 轻微倾斜 */
+  @keyframes phoenixFly{
+    0%   { transform:translate(-50%, -50%) translate(-7vw,  2vh) rotate(-4deg); }
+    25%  { transform:translate(-50%, -50%) translate( 1vw, -3vh) rotate(1deg); }
+    50%  { transform:translate(-50%, -50%) translate( 7vw,  1vh) rotate(4deg); }
+    75%  { transform:translate(-50%, -50%) translate(-1vw, -2vh) rotate(-1deg); }
+    100% { transform:translate(-50%, -50%) translate(-7vw,  2vh) rotate(-4deg); }
   }
   .lock.ok{ opacity:0; transform:scale(1.04); pointer-events:none; }
 
@@ -1161,8 +1233,12 @@
 </div>
 
 <div class="lock" id="lock">
-  <canvas id="phoenixCanvas" aria-hidden="true"></canvas>
-  <canvas id="dustCanvas" aria-hidden="true"></canvas>
+  <div class="jelly j1" aria-hidden="true"></div>
+  <div class="jelly j2" aria-hidden="true"></div>
+  <div class="jelly j3" aria-hidden="true"></div>
+  <div class="phoenix" aria-hidden="true">
+    <div class="phoenix-body"></div>
+  </div>
   <div class="lock-box">
     <div class="lock-title">写给你的一封信</div>
     <div class="lock-sub">输入密码打开</div>
