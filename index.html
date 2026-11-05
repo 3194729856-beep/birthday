@@ -9,6 +9,7 @@
   body {
     width: 100vw;
     height: 100vh;
+    height: 100dvh;   /* 手机浏览器：按实际可见高度算，别被地址栏顶出屏幕 */
     overflow: hidden;
     background:
       radial-gradient(120% 70% at 50% -12%, #fff2f9 0%, rgba(255,242,249,0) 56%),
@@ -1915,6 +1916,69 @@
   @keyframes fadeUp{
     from{ opacity:0; transform:translateY(8px); }
     to  { opacity:1; transform:translateY(0); }
+  }
+
+  /* ==========================================================
+     手机适配
+     ========================================================== */
+  @media (max-width: 480px){
+    /* 密码页：凤凰要露出卡片两侧，不然整只被卡片盖住 */
+    .phoenix{
+      width: min(94vw, 400px);
+      top: 38%;
+    }
+    .lock-box{
+      width: min(80vw, 300px);
+    }
+
+    /* 第二页：内容比屏幕高时可以滚动，不再被裁掉 */
+    .page2{
+      align-items: flex-start;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: 20px 16px 34px;
+    }
+    .p2-inner{ margin: auto; }
+
+    .p2-title{ font-size: clamp(26px, 8.6vw, 40px); margin-bottom: 14px; }
+    .p2-kicker{ font-size: 9px; margin-bottom: 12px; }
+
+    .cake-stage{ min-height: 200px; margin-bottom: 18px; }
+    .cake svg{ width: min(68vw, 260px); }
+
+    .pk-row{ gap: 8px; }
+    .pk-block{ width: 50px; height: 50px; }
+    .pk-q{ font-size: 22px; }
+
+    .qmark-wrap{ top: -24px; right: -4px; }
+    .qmark{ width: 34px; height: 34px; font-size: 20px; }
+    .qtext{ font-size: 11px; }
+
+    .mc-btn{ font-size: 13px; padding: 9px 16px; }
+
+    /* 信封页：底部按钮和提示别挤在一起 */
+    .mc-next{
+      bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+    }
+    .tip{ bottom: calc(78px + env(safe-area-inset-bottom, 0px)); font-size: 11px; }
+
+    /* 四角的 Kitty 缩小一点，别被信纸压住太多 */
+    .bunny{
+      width: clamp(74px, 20vw, 96px);
+      height: clamp(90px, 24vw, 116px);
+    }
+    .bunny.b1{ top: 6%; left: 4%; }
+    .bunny.b2{ top: 11%; right: 4%; }
+    .bunny.b3{ bottom: 20%; left: 3%; }
+    .bunny.b4{ bottom: 7%; right: 3%; }
+  }
+
+  /* 屏幕矮的时候，信纸字号再收一点，保证一页放得下 */
+  @media (max-height: 700px){
+    .sheet p{ font-size: 11px; line-height: 1.72; }
+    .sheet-long p{ font-size: 10.5px; line-height: 1.66; }
+    .sheet-brand{ margin-bottom: 6px; }
+    .sheet h2{ margin-bottom: 6px; }
   }
 </style>
 </head>
